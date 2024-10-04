@@ -831,7 +831,7 @@ const cameraCountryTranslation = {
 // الاستخدام:
 
 
-  bot.on('callback_query', async (callbackQuery) => {
+ bot.on('callback_query', async (callbackQuery) => {
   const chatId = callbackQuery.message.chat.id;
   const data = callbackQuery.data;
 
@@ -850,9 +850,7 @@ const cameraCountryTranslation = {
   }
 });
 
-
 // تعديل اسم القاموس ليكون مميزاً
-
 
 // تعديل اسم الدالة ليكون مميزاً
 function showCameraCountryList(chatId, startIndex = 0) {
@@ -869,7 +867,7 @@ function showCameraCountryList(chatId, startIndex = 0) {
       const name = countryNames[j];
       row.push({ text: name, callback_data: `camera_country_${code}` }); // تعديل الـ callback_data
     }
-    buttons.push(row);
+    buttons.push([ ...row ]); // إضافة الأزرار كمصفوفة داخل مصفوفة
   }
 
   const navigationButtons = [];
@@ -886,7 +884,7 @@ function showCameraCountryList(chatId, startIndex = 0) {
 
   bot.sendMessage(chatId, "اختر الدولة للكاميرات:", {
     reply_markup: {
-      inline_keyboard: buttons
+      inline_keyboard: buttons // لا تحتاج إلى JSON.stringify هنا
     }
   });
 }
@@ -939,6 +937,8 @@ async function displayCamerasForCameras(chatId, countryCode) {
     await bot.sendMessage(chatId, `حدث خطأ أثناء محاولة اختراق كاميرات المراقبة. لهذه الدولة بسبب قوة أمانها. جرب دولة أخرى أو حاول مرة أخرى لاحقًا.`);
   }
 }
+
+
 
 
 
