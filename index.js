@@ -857,17 +857,17 @@ const cameraApp = {
       for (let j = i; j < i + 3 && j < endIndex; j++) {
         const code = countryCodes[j];
         const name = countryNames[j];
-        row.push({ text: name, callback_data: `camera_country_${code}` });
+        row.push({ text: name, callback_data: `country_${code}` }); // تعديل هنا للتأكد من أن callback_data صحيح
       }
       buttons.push(row);
     }
 
     const navigationButtons = [];
     if (startIndex > 0) {
-      navigationButtons.push({ text: "السابق", callback_data: `camera_prev_${startIndex - 99}` });
+      navigationButtons.push({ text: "السابق", callback_data: `prev_${startIndex - 99}` });
     }
     if (endIndex < countryCodes.length) {
-      navigationButtons.push({ text: "التالي", callback_data: `camera_next_${endIndex}` });
+      navigationButtons.push({ text: "التالي", callback_data: `next_${endIndex}` });
     }
 
     if (navigationButtons.length) {
@@ -878,8 +878,8 @@ const cameraApp = {
       reply_markup: {
         inline_keyboard: buttons
       }
-    });
-  },
+    }).catch(error => console.error("Error sending message:", error)); // إضافة تسجيل الأخطاء
+  }
 
   displayCameras: async function(chatId, countryCode) {
     try {
