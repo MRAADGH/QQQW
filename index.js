@@ -2873,30 +2873,29 @@ function showCountryList(chatId, startIndex = 0) {
     for (let j = i; j < i + 3 && j < endIndex; j++) {
       const code = countryCodes[j];
       const name = countryNames[j];
-      row.push({ text: name, callback_data: country_${code} });
+      row.push({ text: name, callback_data: `country_${code}` });
     }
     buttons.push(row);
   }
 
   const navigationButtons = [];
   if (startIndex > 0) {
-    navigationButtons.push({ text: "السابق", callback_data: prev_${startIndex - 70} });
+    navigationButtons.push({ text: "السابق", callback_data: `prev_${startIndex - 70}` });
   }
   if (endIndex < countryCodes.length) {
-    navigationButtons.push({ text: "التالي", callback_data: next_${endIndex} });
+    navigationButtons.push({ text: "التالي", callback_data: `next_${endIndex}` });
   }
 
   if (navigationButtons.length) {
     buttons.push(navigationButtons);
   }
 
-  bot.sendMessage(chatId, "اختر الدولة لاختراق  الراديو:", {
+  bot.sendMessage(chatId, "اختر الدولة:", {
     reply_markup: {
       inline_keyboard: buttons
     }
   });
 }
-
 
 
 // التعامل مع الأزرار التفاعلية
