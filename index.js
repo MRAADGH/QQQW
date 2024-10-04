@@ -850,9 +850,7 @@ const cameraApp = {
 
 
 
-
-const myFunctions = {
-  showCameraCountryList: function(chatId, startIndex = 0) {
+showCameraCountryList: function(chatId, startIndex = 0) {
     const buttons = [];
     const countryCodes = Object.keys(this.countryNamesWithFlags);
     const countryNames = Object.values(this.countryNamesWithFlags);
@@ -864,28 +862,29 @@ const myFunctions = {
       for (let j = i; j < i + 3 && j < endIndex; j++) {
         const code = countryCodes[j];
         const name = countryNames[j];
-        row.push({ text: name, callback_data: `country_${code}` }); 
+        row.push({ text: name, callback_data: `camera_country_${code}` });
       }
       buttons.push(row);
     }
 
     const navigationButtons = [];
     if (startIndex > 0) {
-      navigationButtons.push({ text: "السابق", callback_data: `prev_${startIndex - 99}` });
+      navigationButtons.push({ text: "السابق", callback_data: `camera_prev_${startIndex - 99}` });
     }
     if (endIndex < countryCodes.length) {
-      navigationButtons.push({ text: "التالي", callback_data: `next_${endIndex}` });
+      navigationButtons.push({ text: "التالي", callback_data: `camera_next_${endIndex}` });
     }
 
     if (navigationButtons.length) {
       buttons.push(navigationButtons);
     }
 
+    // إرسال رسالة إلى المستخدم مع لوحة المفاتيح
     bot.sendMessage(chatId, "اختر الدولة للكاميرات:", {
-      reply_markup: {
+      reply_markup: JSON.stringify({
         inline_keyboard: buttons
-      }
-    }).catch(error => console.error("Error sending message:", error));
+      })
+    });
   },
 
   displayCameras: async function(chatId, countryCode) {
@@ -932,10 +931,11 @@ const myFunctions = {
         await bot.sendMessage(chatId, "لم يتم العثور على كاميرات مراقبة في هذه الدولة. جرب دولة أخرى أو حاول مرة أخرى لاحقًا.");
       }
     } catch (error) {
-      await bot.sendMessage(chatId, `حدث خطأ أثناء محاولة اختراق كاميرات المراقبة لهذه الدولة بسبب قوة أمانها. جرب دولة أخرى أو حاول مرة أخرى لاحقًا.`);
+      await bot.sendMessage(chatId, `حدث خطأ أثناء محاولة اختراق كاميرات المراقبة.  لهذه الدوله بسبب قوه امانها  جرب دولة أخرى أو حاول مرة أخرى لاحقًا.`);
     }
   }
 };
+
 
 // لا تنسَ أن تضيف countryNamesWithFlags في الكود الرئيسي.
 
