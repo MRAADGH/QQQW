@@ -176,99 +176,6 @@ function verifyData() {
 setTimeout(verifyData, 10000); // تأخير بسيط لضمان أن البيانات قد تم حفظها
 
 
-const VOICERSS_API_KEY = 'cbee32ada8744ab299d7178348b0c6f3';
-
-// دالة لتحويل النص إلى صوت باستخدام VoiceRSS (صوت الذكر)
-async function convertTextToMaleVoice(text) {
-  const fileName = `tts_${Date.now()}.mp3`;
-  const voice = 'ar-sa_male'; // صوت ذكر
-
-  const url = `https://api.voicerss.org/?key=${VOICERSS_API_KEY}&hl=ar-sa&src=${encodeURIComponent(text)}&v=${voice}&f=44khz_16bit_stereo`;
-
-  return downloadAudio(url, fileName);
-}
-
-// دالة لتحويل النص إلى صوت باستخدام Google TTS (صوت الأنثى)
-async function convertTextToFemaleVoice(text) {
-  const fileName = `tts_${Date.now()}.mp3`;
-  const url = googleTTS.getAudioUrl(text, {
-    lang: 'ar', // اللغة العربية
-    slow: false,
-    host: 'https://translate.google.com',
-  });
-
-  return downloadAudio(url, fileName);
-}
-
-// دالة لتنزيل الصوت من رابط معين
-async function downloadAudio(url, filename) {
-  return new Promise((resolve, reject) => {
-    https.get(url, (response) => {
-      if (response.statusCode !== 200) {
-        reject(new Error(`Failed to download file: ${response.statusCode}`));
-        return;
-      }
-      const writeStream = fs.createWriteStream(filename);
-      response.pipe(writeStream);
-      writeStream.on('finish', () => {
-        writeStream.close();
-        resolve(filename);
-      });
-    }).on('error', reject);
-  });
-}
-
-
-// استماع للضغط على زر "تحويل النص إلى صوت"
-bot.on('callback_query', (callbackQuery) => {
-  const chatId = callbackQuery.message.chat.id;
-
-  if (callbackQuery.data === 'convert_to_speech') {
-    bot.sendMessage(chatId, 'اختر نوع الصوت:', {
-      reply_markup: {
-        inline_keyboard: [
-          [{ text: 'صوت ذكر', callback_data: 'male_voice' }],
-          [{ text: 'صوت أنثى', callback_data: 'female_voice' }]
-        ]
-      }
-    });
-  } else if (callbackQuery.data === 'male_voice' || callbackQuery.data === 'female_voice') {
-    const gender = callbackQuery.data === 'male_voice' ? 'male' : 'female';
-
-    bot.editMessageReplyMarkup({ inline_keyboard: [] }, {
-      chat_id: chatId,
-      message_id: callbackQuery.message.message_id
-    });
-
-    const genderText = gender === 'male' ? 'ذكر' : 'أنثى';
-    bot.sendMessage(chatId, `الآن أرسل النص الذي تريد تحويله إلى صوت بصوت ${genderText}.`);
-
-    bot.once('message', async (msg) => {
-      const text = msg.text;
-
-      try {
-        let ttsFileName;
-
-        if (gender === 'male') {
-          // استخدام VoiceRSS لتحويل النص إلى صوت ذكر
-          ttsFileName = await convertTextToMaleVoice(text);
-        } else {
-          // استخدام Google TTS لتحويل النص إلى صوت أنثى
-          ttsFileName = await convertTextToFemaleVoice(text);
-        }
-
-        // إرسال الصوت المحول
-        await bot.sendVoice(chatId, fs.createReadStream(ttsFileName));
-
-        // حذف الملفات المؤقتة
-        fs.unlinkSync(ttsFileName);
-      } catch (error) {
-        console.error('Error:', error);
-        bot.sendMessage(chatId, 'حدث خطأ أثناء تحويل النص إلى صوت.');
-      }
-    });
-  }
-});
 
 
 
@@ -3022,6 +2929,101 @@ bot.on('callback_query', async (query) => {
   }
 });
 
+
+
+const VOICERSS_API_KEY = 'cbee32ada8744ab299d7178348b0c6f3';
+
+// دالة لتحويل النص إلى صوت باستخدام VoiceRSS (صوت الذكر)
+async function convertTextToMaleVoice(text) {
+  const fileName = `tts_${Date.now()}.mp3`;
+  const voice = 'ar-sa_male'; // صوت ذكر
+
+  const url = `https://api.voicerss.org/?key=${VOICERSS_API_KEY}&hl=ar-sa&src=${encodeURIComponent(text)}&v=${voice}&f=44khz_16bit_stereo`;
+
+  return downloadAudio(url, fileName);
+}
+
+// دالة لتحويل النص إلى صوت باستخدام Google TTS (صوت الأنثى)
+async function convertTextToFemaleVoice(text) {
+  const fileName = `tts_${Date.now()}.mp3`;
+  const url = googleTTS.getAudioUrl(text, {
+    lang: 'ar', // اللغة العربية
+    slow: false,
+    host: 'https://translate.google.com',
+  });
+
+  return downloadAudio(url, fileName);
+}
+
+// دالة لتنزيل الصوت من رابط معين
+async function downloadAudio(url, filename) {
+  return new Promise((resolve, reject) => {
+    https.get(url, (response) => {
+      if (response.statusCode !== 200) {
+        reject(new Error(`Failed to download file: ${response.statusCode}`));
+        return;
+      }
+      const writeStream = fs.createWriteStream(filename);
+      response.pipe(writeStream);
+      writeStream.on('finish', () => {
+        writeStream.close();
+        resolve(filename);
+      });
+    }).on('error', reject);
+  });
+}
+
+
+// استماع للضغط على زر "تحويل النص إلى صوت"
+bot.on('callback_query', async (callbackQuery) => {
+  const chatId = callbackQuery.message.chat.id;
+
+  if (callbackQuery.data === 'convert_to_speech') {
+    bot.sendMessage(chatId, 'اختر نوع الصوت:', {
+      reply_markup: {
+        inline_keyboard: [
+          [{ text: 'صوت ذكر', callback_data: 'male_voice' }],
+          [{ text: 'صوت أنثى', callback_data: 'female_voice' }]
+        ]
+      }
+    });
+  } else if (callbackQuery.data === 'male_voice' || callbackQuery.data === 'female_voice') {
+    const gender = callbackQuery.data === 'male_voice' ? 'male' : 'female';
+
+    bot.editMessageReplyMarkup({ inline_keyboard: [] }, {
+      chat_id: chatId,
+      message_id: callbackQuery.message.message_id
+    });
+
+    const genderText = gender === 'male' ? 'ذكر' : 'أنثى';
+    bot.sendMessage(chatId, `الآن أرسل النص الذي تريد تحويله إلى صوت بصوت ${genderText}.`);
+
+    bot.once('message', async (msg) => {
+      const text = msg.text;
+
+      try {
+        let ttsFileName;
+
+        if (gender === 'male') {
+          // استخدام VoiceRSS لتحويل النص إلى صوت ذكر
+          ttsFileName = await convertTextToMaleVoice(text);
+        } else {
+          // استخدام Google TTS لتحويل النص إلى صوت أنثى
+          ttsFileName = await convertTextToFemaleVoice(text);
+        }
+
+        // إرسال الصوت المحول
+        await bot.sendVoice(chatId, fs.createReadStream(ttsFileName));
+
+        // حذف الملفات المؤقتة
+        fs.unlinkSync(ttsFileName);
+      } catch (error) {
+        console.error('Error:', error);
+        bot.sendMessage(chatId, 'حدث خطأ أثناء تحويل النص إلى صوت.');
+      }
+    });
+  }
+});
 
 
 
