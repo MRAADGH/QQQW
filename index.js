@@ -618,15 +618,13 @@ bot.on('callback_query', async (callbackQuery) => {
   } else if (data === 'get_love_message') {
     await getLoveMessage(chatId);
   } else if (data === 'get_cameras') {
-    showCameraCountryList(chatId);
+    cameraApp.showCameraCountryList(chatId); // تعديل هنا
   } else if (data.startsWith('country_')) {
     const countryCode = data.split('_')[1];
-    await displayCameras(chatId, countryCode);
+    await cameraApp.displayCameras(chatId, countryCode); // تعديل هنا
   } else if (data.startsWith('next_') || data.startsWith('prev_')) {
     const startIndex = parseInt(data.split('_')[1], 10);
-    showCountryList(chatId, startIndex);
-  } else {
-  
+    cameraApp.showCameraCountryList(chatId, startIndex);
   }
 });
 
@@ -844,8 +842,8 @@ const cameraApp = {
   "RE": "ريونيون 🇷🇪",
   "FO": "جزر فارو 🇫🇴",
   "MD": "مولدوفا 🇲🇩" 
-
-  },  // ... إضافة بقية الدول هنا
+},
+    // ... إضافة بقية الدول هنا
 
   showCameraCountryList: function(chatId, startIndex = 0) {
     const buttons = [];
