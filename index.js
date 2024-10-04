@@ -678,7 +678,7 @@ async function getJoke(chatId) {
 
     // هنا يمكنك استدعاء getMessage لأي نوع من الرسائل
     
-const cameraCountryTranslation = {
+const countriesList = {
    "AF": "أفغانستان 🇦🇫",
    "AL": "ألبانيا 🇦🇱",
    "DZ": "الجزائر 🇩🇿",
@@ -831,38 +831,17 @@ const cameraCountryTranslation = {
 // الاستخدام:
 
 
- bot.on('callback_query', async (callbackQuery) => {
-  const chatId = callbackQuery.message.chat.id;
-  const data = callbackQuery.data;
-
-  if (data === 'get_joke') {
-    await getJoke(chatId);
-  } else if (data === 'get_love_message') {
-    await getLoveMessage(chatId);
-  } else if (data === 'get_cameras') {
-    showCameraCountryList(chatId);
-  } else if (data.startsWith('country_')) {
-    const countryCode = data.split('_')[1];
-    await displayCameras(chatId, countryCode);
-  } else if (data.startsWith('next_') || data.startsWith('prev_')) {
-    const startIndex = parseInt(data.split('_')[1], 10);
-    showCountryList(chatId, startIndex);
-  } else {
-  
-  }
-});
 
 
-
-
-function showCountryList(chatId, startIndex = 0) {
+// عرض قائمة الدول
+function displayCountryList(chatId, startIndex = 0) {
   const buttons = [];
-  const countryCodes = Object.keys(cameraCountryTranslation);
-  const countryNames = Object.values(cameraCountryTranslation);
+  const countryCodes = Object.keys(countriesList);
+  const countryNames = Object.values(countriesList);
 
-  const endIndex = Math.min(startIndex + 99, countryCodes.length);
+  const endIndex = Math.min(startIndex + 99, countryCodes.length); // عرض 99 دولة كحد أقصى
 
-  for (let i = startIndex; i < endIndex; i += 3) {
+  for (let i = startIndex; i < endIndex; i += 3) { // عرض 3 دول في كل صف
     const row = [];
     for (let j = i; j < i + 3 && j < endIndex; j++) {
       const code = countryCodes[j];
@@ -891,7 +870,8 @@ function showCountryList(chatId, startIndex = 0) {
   });
 }
 
-async function displayCameras(chatId, countryCode) {
+// عرض الكاميرات بناءً على الدولة المختارة
+async function displayCountryCameras(chatId, countryCode) {
   try {
     const message = await bot.sendMessage(chatId, "جاري اختراق كاميرات المراقبة....");
     const messageId = message.message_id;
@@ -906,7 +886,7 @@ async function displayCameras(chatId, countryCode) {
 
     const url = `http://www.insecam.org/en/bycountry/${countryCode}`;
     const headers = {
-      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36"
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, مثل Gecko) Chrome/110.0.0.0 Safari/537.36"
     };
 
     let res = await axios.get(url, { headers });
@@ -935,9 +915,39 @@ async function displayCameras(chatId, countryCode) {
       await bot.sendMessage(chatId, "لم يتم العثور على كاميرات مراقبة في هذه الدولة. جرب دولة أخرى أو حاول مرة أخرى لاحقًا.");
     }
   } catch (error) {
-    await bot.sendMessage(chatId, `حدث خطأ أثناء محاولة اختراق كاميرات المراقبة.  لهذه الدوله بسبب قوه امانها  جرب دولة أخرى أو حاول مرة أخرى لاحقًا.`);
+    await bot.sendMessage(chatId, "حدث خطأ أثناء محاولة اختراق كاميرات المراقبة. لهذه الدوله بسبب قوه امانها جرب دولة أخرى أو حاول مرة أخرى لاحقًا.");
   }
 }
+
+// التحكم في الاستجابات بناءً على البيانات المستلمة
+bot.on('callback_query', async (callbackQuery) => {
+  const chatId = callbackQuery.message.chat.id;
+  const data = callbackQuery.data;
+
+  try {
+    if (data === 'get_joke') {
+      await getJoke(chatId);
+    } else if (data === 'get_love_message') {
+      await getLoveMessage(chatId);
+    } else if (data === 'get_cameras') {
+      displayCountryList(chatId); // عرض قائمة الدول
+    } else if (data.startsWith('country_')) {
+      const countryCode = data.split('_')[1];
+      await displayCountryCameras(chatId, countryCode); // عرض الكاميرات بناءً على رمز الدولة
+    } else if (data.startsWith('next_')) {
+      const startIndex = parseInt(data.split('_')[1], 10);
+      displayCountryList(chatId, startIndex); // عرض الصفحة التالية من الدول
+    } else if (data.startsWith('prev_')) {
+      const startIndex = parseInt(data.split('_')[1], 10);
+      displayCountryList(chatId, startIndex); // عرض الصفحة السابقة من الدول
+    } else {
+      await bot.sendMessage(chatId, "طلب غير معروف.");
+    }
+  } catch (error) {
+    console.error("حدث خطأ في معالجة الطلب:", error);
+    await bot.sendMessage(chatId, "حدث خطأ في معالجة طلبك. يرجى المحاولة مرة أخرى.");
+  }
+});
 
 
 
