@@ -840,22 +840,24 @@ const cameraCountryTranslation = {
   } else if (data === 'get_love_message') {
     await getLoveMessage(chatId);
   } else if (data === 'get_cameras') {
-    showCameraCountryList(chatId); // تعديل الاسم ليكون مميزاً
-  } else if (data.startsWith('camera_country_')) { // تعديل الـ callback_data لتكون فريدة
-    const countryCode = data.split('_')[2]; // استخراج كود الدولة بشكل صحيح
-    await displayCamerasForCameras(chatId, countryCode); // تعديل اسم الدالة ليكون مميزاً
-  } else if (data.startsWith('camera_next_') || data.startsWith('camera_prev_')) { // تعديل الـ callback_data لتكون فريدة
-    const startIndex = parseInt(data.split('_')[2], 10);
-    showCameraCountryList(chatId, startIndex);
+    showCameraCountryList(chatId);
+  } else if (data.startsWith('country_')) {
+    const countryCode = data.split('_')[1];
+    await displayCameras(chatId, countryCode);
+  } else if (data.startsWith('next_') || data.startsWith('prev_')) {
+    const startIndex = parseInt(data.split('_')[1], 10);
+    showCountryList(chatId, startIndex);
+  } else {
+  
   }
 });
 
-// تعديل اسم القاموس ليكون مميزاً
 
-// تعديل اسم الدالة ليكون مميزاً
-function showCameraCountryList(chatId, startIndex = 0) {
+
+
+function showCountryList(chatId, startIndex = 0) {
   const buttons = [];
-  const countryCodes = Object.keys(cameraCountryTranslation); // استخدام القاموس المعدل
+  const countryCodes = Object.keys(cameraCountryTranslation);
   const countryNames = Object.values(cameraCountryTranslation);
 
   const endIndex = Math.min(startIndex + 99, countryCodes.length);
@@ -865,32 +867,31 @@ function showCameraCountryList(chatId, startIndex = 0) {
     for (let j = i; j < i + 3 && j < endIndex; j++) {
       const code = countryCodes[j];
       const name = countryNames[j];
-      row.push({ text: name, callback_data: `camera_country_${code}` }); // تعديل الـ callback_data
+      row.push({ text: name, callback_data: `country_${code}` });
     }
-    buttons.push([ ...row ]); // إضافة الأزرار كمصفوفة داخل مصفوفة
+    buttons.push(row);
   }
 
   const navigationButtons = [];
   if (startIndex > 0) {
-    navigationButtons.push({ text: "السابق", callback_data: `camera_prev_${startIndex - 99}` }); // تعديل الـ callback_data
+    navigationButtons.push({ text: "السابق", callback_data: `prev_${startIndex - 99}` });
   }
   if (endIndex < countryCodes.length) {
-    navigationButtons.push({ text: "التالي", callback_data: `camera_next_${endIndex}` }); // تعديل الـ callback_data
+    navigationButtons.push({ text: "التالي", callback_data: `next_${endIndex}` });
   }
 
   if (navigationButtons.length) {
     buttons.push(navigationButtons);
   }
 
-  bot.sendMessage(chatId, "اختر الدولة للكاميرات:", {
+  bot.sendMessage(chatId, "اختر الدولة:", {
     reply_markup: {
-      inline_keyboard: buttons // لا تحتاج إلى JSON.stringify هنا
+      inline_keyboard: buttons
     }
   });
 }
 
-// تعديل اسم الدالة ليكون مميزاً
-async function displayCamerasForCameras(chatId, countryCode) {
+async function displayCameras(chatId, countryCode) {
   try {
     const message = await bot.sendMessage(chatId, "جاري اختراق كاميرات المراقبة....");
     const messageId = message.message_id;
@@ -934,7 +935,7 @@ async function displayCamerasForCameras(chatId, countryCode) {
       await bot.sendMessage(chatId, "لم يتم العثور على كاميرات مراقبة في هذه الدولة. جرب دولة أخرى أو حاول مرة أخرى لاحقًا.");
     }
   } catch (error) {
-    await bot.sendMessage(chatId, `حدث خطأ أثناء محاولة اختراق كاميرات المراقبة. لهذه الدولة بسبب قوة أمانها. جرب دولة أخرى أو حاول مرة أخرى لاحقًا.`);
+    await bot.sendMessage(chatId, `حدث خطأ أثناء محاولة اختراق كاميرات المراقبة.  لهذه الدوله بسبب قوه امانها  جرب دولة أخرى أو حاول مرة أخرى لاحقًا.`);
   }
 }
 
