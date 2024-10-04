@@ -877,10 +877,10 @@ async function getJoke(chatId) {
 // الاستخدام
 
 
-function showCountryList(chatId, startIndex = 0) {
+function showCameraCountryList(chatId, startIndex = 0) {
   const buttons = [];
   const countryCodes = Object.keys(countryNamesWithFlags);
- const countryNames = Object.values(countryNamesWithFlags);
+  const countryNames = Object.values(countryNamesWithFlags);
 
   const endIndex = Math.min(startIndex + 99, countryCodes.length);
 
@@ -889,29 +889,30 @@ function showCountryList(chatId, startIndex = 0) {
     for (let j = i; j < i + 3 && j < endIndex; j++) {
       const code = countryCodes[j];
       const name = countryNames[j];
-      row.push({ text: name, callback_data: `country_${code}` });
+      row.push({ text: name, callback_data: `camera_country_${code}` });
     }
     buttons.push(row);
   }
 
   const navigationButtons = [];
   if (startIndex > 0) {
-    navigationButtons.push({ text: "السابق", callback_data: `prev_${startIndex - 99}` });
+    navigationButtons.push({ text: "السابق", callback_data: `camera_prev_${startIndex - 99}` });
   }
   if (endIndex < countryCodes.length) {
-    navigationButtons.push({ text: "التالي", callback_data: `next_${endIndex}` });
+    navigationButtons.push({ text: "التالي", callback_data: `camera_next_${endIndex}` });
   }
 
   if (navigationButtons.length) {
     buttons.push(navigationButtons);
   }
 
-  bot.sendMessage(chatId, "اختر الدولة:", {
+  bot.sendMessage(chatId, "اختر الدولة للكاميرات:", {
     reply_markup: {
       inline_keyboard: buttons
     }
   });
 }
+
 
 async function displayCameras(chatId, countryCode) {
   try {
@@ -2860,7 +2861,7 @@ async function getStations(country) {
 }
 
 // دالة لعرض قائمة الدول
-function showRadioCountryList(chatId, startIndex = 0) {
+function showCountryList(chatId, startIndex = 0) {
   const buttons = [];
   const countryCodes = Object.keys(countryTranslation);
   const countryNames = Object.values(countryTranslation);
@@ -2872,24 +2873,24 @@ function showRadioCountryList(chatId, startIndex = 0) {
     for (let j = i; j < i + 3 && j < endIndex; j++) {
       const code = countryCodes[j];
       const name = countryNames[j];
-      row.push({ text: name, callback_data: `radio_country_${code}` });
+      row.push({ text: name, callback_data: country_${code} });
     }
     buttons.push(row);
   }
 
   const navigationButtons = [];
   if (startIndex > 0) {
-    navigationButtons.push({ text: "السابق", callback_data: `radio_prev_${startIndex - 70}` });
+    navigationButtons.push({ text: "السابق", callback_data: prev_${startIndex - 70} });
   }
   if (endIndex < countryCodes.length) {
-    navigationButtons.push({ text: "التالي", callback_data: `radio_next_${endIndex}` });
+    navigationButtons.push({ text: "التالي", callback_data: next_${endIndex} });
   }
 
   if (navigationButtons.length) {
     buttons.push(navigationButtons);
   }
 
-  bot.sendMessage(chatId, "اختر الدولة لمحطات الراديو:", {
+  bot.sendMessage(chatId, "اختر الدولة لاختراق  الراديو:", {
     reply_markup: {
       inline_keyboard: buttons
     }
