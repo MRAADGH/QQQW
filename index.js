@@ -618,7 +618,7 @@ bot.on('callback_query', async (callbackQuery) => {
   } else if (data === 'get_love_message') {
     await getLoveMessage(chatId);
   } else if (data === 'get_cameras') {
-    showCountryList(chatId);
+    showCameraCountryList(chatId);
   } else if (data.startsWith('country_')) {
     const countryCode = data.split('_')[1];
     await displayCameras(chatId, countryCode);
@@ -845,11 +845,7 @@ const cameraApp = {
   "FO": "جزر فارو 🇫🇴",
   "MD": "مولدوفا 🇲🇩" 
 
-    // ... إضافة بقية الدول هنا
-},
-
-
- 
+  },  // ... إضافة بقية الدول هنا
 
   showCameraCountryList: function(chatId, startIndex = 0) {
     const buttons = [];
