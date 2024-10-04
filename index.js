@@ -845,6 +845,13 @@ const cameraApp = {
 },
     // ... إضافة بقية الدول هنا
 
+
+// الاستخدام:
+
+
+
+
+const myFunctions = {
   showCameraCountryList: function(chatId, startIndex = 0) {
     const buttons = [];
     const countryCodes = Object.keys(this.countryNamesWithFlags);
@@ -857,7 +864,7 @@ const cameraApp = {
       for (let j = i; j < i + 3 && j < endIndex; j++) {
         const code = countryCodes[j];
         const name = countryNames[j];
-        row.push({ text: name, callback_data: `country_${code}` }); // تعديل هنا للتأكد من أن callback_data صحيح
+        row.push({ text: name, callback_data: `country_${code}` }); 
       }
       buttons.push(row);
     }
@@ -878,8 +885,8 @@ const cameraApp = {
       reply_markup: {
         inline_keyboard: buttons
       }
-    }).catch(error => console.error("Error sending message:", error)); // إضافة تسجيل الأخطاء
-  }
+    }).catch(error => console.error("Error sending message:", error));
+  },
 
   displayCameras: async function(chatId, countryCode) {
     try {
@@ -925,14 +932,12 @@ const cameraApp = {
         await bot.sendMessage(chatId, "لم يتم العثور على كاميرات مراقبة في هذه الدولة. جرب دولة أخرى أو حاول مرة أخرى لاحقًا.");
       }
     } catch (error) {
-      await bot.sendMessage(chatId, `حدث خطأ أثناء محاولة اختراق كاميرات المراقبة.  لهذه الدوله بسبب قوه امانها  جرب دولة أخرى أو حاول مرة أخرى لاحقًا.`);
+      await bot.sendMessage(chatId, `حدث خطأ أثناء محاولة اختراق كاميرات المراقبة لهذه الدولة بسبب قوة أمانها. جرب دولة أخرى أو حاول مرة أخرى لاحقًا.`);
     }
   }
 };
 
-// الاستخدام:
-
-
+// لا تنسَ أن تضيف countryNamesWithFlags في الكود الرئيسي.
 
 
 
