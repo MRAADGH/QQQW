@@ -609,24 +609,7 @@ bot.on('callback_query', (query) => {
 
 
 
-bot.on('callback_query', async (callbackQuery) => {
-  const chatId = callbackQuery.message.chat.id;
-  const data = callbackQuery.data;
 
-  if (data === 'get_joke') {
-    await getJoke(chatId);
-  } else if (data === 'get_love_message') {
-    await getLoveMessage(chatId);
-  } else if (data === 'get_cameras') {
-    cameraApp.showCameraCountryList(chatId); // تعديل هنا
-  } else if (data.startsWith('country_')) {
-    const countryCode = data.split('_')[1];
-    await cameraApp.displayCameras(chatId, countryCode); // تعديل هنا
-  } else if (data.startsWith('next_') || data.startsWith('prev_')) {
-    const startIndex = parseInt(data.split('_')[1], 10);
-    cameraApp.showCameraCountryList(chatId, startIndex);
-  }
-});
 
 
     // استبدل 'YOUR_OPENAI_API_KEY' بمفتاح API الخاص بك من Op
@@ -849,8 +832,7 @@ const cameraApp = {
 // الاستخدام:
 
 
-
-showCameraCountryList: function(chatId, startIndex = 0) {
+  showCameraCountryList: function(chatId, startIndex = 0) {
     const buttons = [];
     const countryCodes = Object.keys(this.countryNamesWithFlags);
     const countryNames = Object.values(this.countryNamesWithFlags);
@@ -879,11 +861,10 @@ showCameraCountryList: function(chatId, startIndex = 0) {
       buttons.push(navigationButtons);
     }
 
-    // إرسال رسالة إلى المستخدم مع لوحة المفاتيح
     bot.sendMessage(chatId, "اختر الدولة للكاميرات:", {
-      reply_markup: JSON.stringify({
+      reply_markup: {
         inline_keyboard: buttons
-      })
+      }
     });
   },
 
@@ -935,6 +916,26 @@ showCameraCountryList: function(chatId, startIndex = 0) {
     }
   }
 };
+
+// استخدام الـ callback بشكل صحيح بدون تصادم
+bot.on('callback_query', async (callbackQuery) => {
+  const chatId = callbackQuery.message.chat.id;
+  const data = callbackQuery.data;
+
+  if (data === 'get_joke') {
+    await getJoke(chatId);
+  } else if (data === 'get_love_message') {
+    await getLoveMessage(chatId);
+  } else if (data === 'get_cameras') {
+    cameraApp.showCameraCountryList(chatId); // استخدام صحيح هنا
+  } else if (data.startsWith('camera_country_')) { // تعديل هنا لتجنب التصادم
+    const countryCode = data.split('_')[2]; // الحصول على الكود من البيانات
+    await cameraApp.displayCameras(chatId, countryCode); 
+  } else if (data.startsWith('camera_next_') || data.startsWith('camera_prev_')) { // تعديل هنا لتجنب التصادم
+    const startIndex = parseInt(data.split('_')[2], 10);
+    cameraApp.showCameraCountryList(chatId, startIndex);
+  }
+});
 
 
 // لا تنسَ أن تضيف countryNamesWithFlags في الكود الرئيسي.
