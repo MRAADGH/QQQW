@@ -604,7 +604,7 @@ bot.on('callback_query', (query) => {
 // استبدل 'YOUR_OPENAI_API_KEY' بمفتاح API الخاص بك من OpenAI
 
 
-const countryTranslation = {
+const countryNamesWithFlags = {
     "AF": "أفغانستان 🇦🇫",
   "AL": "ألبانيا 🇦🇱",
   "DZ": "الجزائر 🇩🇿",
