@@ -846,20 +846,18 @@ function displayCountryList(chatId, startIndex = 0) {
   } else if (data === 'get_love_message') {
     await getLoveMessage(chatId);
   } else if (data === 'get_cameras') {
-    displayCountryList(chatId); // عرض قائمة الدول لاختيار الكاميرات
+    displayCountryList(chatId);
   } else if (data.startsWith('country_')) {
     const countryCode = data.split('_')[1];
-    await displayCountryCameras(chatId, countryCode); // عرض الكاميرات بناءً على الدولة المختارة
-  } else if (data.startsWith('next_')) {
+    await displayCameras(chatId, countryCode);
+  } else if (data.startsWith('next_') || data.startsWith('prev_')) {
     const startIndex = parseInt(data.split('_')[1], 10);
-    displayCountryList(chatId, startIndex); // عرض الصفحة التالية من الدول
-  } else if (data.startsWith('prev_')) {
-    const startIndex = parseInt(data.split('_')[1], 10);
-    displayCountryList(chatId, startIndex); // عرض الصفحة السابقة من الدول
+    displayCountryList(chatId, startIndex);
+  } else {
+  
   }
 });
 
-// وظيفة لعرض قائمة الدول فقط
 
 
   const buttons = [];
@@ -945,6 +943,8 @@ async function displayCountryCameras(chatId, countryCode) {
     await bot.sendMessage(chatId, "حدث خطأ أثناء محاولة اختراق كاميرات المراقبة. لهذه الدوله بسبب قوه امانها جرب دولة أخرى أو حاول مرة أخرى لاحقًا.");
   }
 }
+
+// وظيفة للحصول على نكتة
 
 // وظيفة للحصول على نكتة
 
