@@ -604,7 +604,7 @@ bot.on('callback_query', (query) => {
 // استبدل 'YOUR_OPENAI_API_KEY' بمفتاح API الخاص بك من OpenAI
 
 
-const countryTranslation = {
+const cameraCountries = {
     "AF": "أفغانستان 🇦🇫",
   "AL": "ألبانيا 🇦🇱",
   "DZ": "الجزائر 🇩🇿",
@@ -2585,7 +2585,7 @@ function showDefaultButtons(userId) {
 
 
 
-const countryNamesWithFlags = {
+const radioCountries = {
   "United Arab Emirates": "الإمارات 🇦🇪",
   "Saudi Arabia": "السعودية 🇸🇦",
   "Yemen": "اليمن 🇾🇪👑",
@@ -2807,7 +2807,7 @@ function showCountryList(chatId, startIndex = 0) {
     buttons.push(navigationButtons);
   }
 
-  bot.sendMessage(chatId, " اختر الدولة:", {
+  bot.sendMessage(chatId, "اختر الدولة لاختراق  الراديو:", {
     reply_markup: {
       inline_keyboard: buttons
     }
