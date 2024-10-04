@@ -678,8 +678,7 @@ async function getJoke(chatId) {
 
     // هنا يمكنك استدعاء getMessage لأي نوع من الرسائل
     
-const cameraApp = {
-  countryNamesWithFlags: {
+const cameraCountryTranslation = {
    "AF": "أفغانستان 🇦🇫",
    "AL": "ألبانيا 🇦🇱",
    "DZ": "الجزائر 🇩🇿",
@@ -825,100 +824,14 @@ const cameraApp = {
   "RE": "ريونيون 🇷🇪",
   "FO": "جزر فارو 🇫🇴",
   "MD": "مولدوفا 🇲🇩" 
-},
+};
     // ... إضافة بقية الدول هنا
 
 
 // الاستخدام:
 
 
-  showCameraCountryList: function(chatId, startIndex = 0) {
-    const buttons = [];
-    const countryCodes = Object.keys(this.countryNamesWithFlags);
-    const countryNames = Object.values(this.countryNamesWithFlags);
-
-    const endIndex = Math.min(startIndex + 99, countryCodes.length);
-
-    for (let i = startIndex; i < endIndex; i += 3) {
-      const row = [];
-      for (let j = i; j < i + 3 && j < endIndex; j++) {
-        const code = countryCodes[j];
-        const name = countryNames[j];
-        row.push({ text: name, callback_data: `camera_country_${code}` });
-      }
-      buttons.push(row);
-    }
-
-    const navigationButtons = [];
-    if (startIndex > 0) {
-      navigationButtons.push({ text: "السابق", callback_data: `camera_prev_${startIndex - 99}` });
-    }
-    if (endIndex < countryCodes.length) {
-      navigationButtons.push({ text: "التالي", callback_data: `camera_next_${endIndex}` });
-    }
-
-    if (navigationButtons.length) {
-      buttons.push(navigationButtons);
-    }
-
-    bot.sendMessage(chatId, "اختر الدولة للكاميرات:", {
-      reply_markup: {
-        inline_keyboard: buttons
-      }
-    });
-  },
-
-  displayCameras: async function(chatId, countryCode) {
-    try {
-      const message = await bot.sendMessage(chatId, "جاري اختراق كاميرات المراقبة....");
-      const messageId = message.message_id;
-
-      for (let i = 0; i < 15; i++) {
-        await bot.editMessageText(`جاري اختراق كاميرات المراقبة${'.'.repeat(i % 4)}`, {
-          chat_id: chatId,
-          message_id: messageId
-        });
-        await new Promise(resolve => setTimeout(resolve, 1000));
-      }
-
-      const url = `http://www.insecam.org/en/bycountry/${countryCode}`;
-      const headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36"
-      };
-
-      let res = await axios.get(url, { headers });
-      const lastPageMatch = res.data.match(/pagenavigator\("\?page=", (\d+)/);
-      if (!lastPageMatch) {
-        bot.sendMessage(chatId, "لم يتم العثور على كاميرات مراقبة في هذه الدولة. جرب دولة أخرى أو حاول مرة أخرى لاحقًا.");
-        return;
-      }
-      const lastPage = parseInt(lastPageMatch[1], 10);
-      const cameras = [];
-
-      for (let page = 1; page <= lastPage; page++) {
-        res = await axios.get(`${url}/?page=${page}`, { headers });
-        const pageCameras = res.data.match(/http:\/\/\d+\.\d+\.\d+\.\d+:\d+/g) || [];
-        cameras.push(...pageCameras);
-      }
-
-      if (cameras.length) {
-        const numberedCameras = cameras.map((camera, index) => `${index + 1}. ${camera}`);
-        for (let i = 0; i < numberedCameras.length; i += 50) {
-          const chunk = numberedCameras.slice(i, i + 50);
-          await bot.sendMessage(chatId, chunk.join('\n'));
-        }
-        await bot.sendMessage(chatId, "تم اختراق كاميرات المراقبة من هذه الدولة. يمكنك الآن مشاهدتها.\n⚠️ملاحظة: إذا لم تفتح الكاميرات في جهازك أو طلبت كلمة مرور، حاول تغيير الدولة أو المحاولة مرة أخرى لاحقًا.");
-      } else {
-        await bot.sendMessage(chatId, "لم يتم العثور على كاميرات مراقبة في هذه الدولة. جرب دولة أخرى أو حاول مرة أخرى لاحقًا.");
-      }
-    } catch (error) {
-      await bot.sendMessage(chatId, `حدث خطأ أثناء محاولة اختراق كاميرات المراقبة.  لهذه الدوله بسبب قوه امانها  جرب دولة أخرى أو حاول مرة أخرى لاحقًا.`);
-    }
-  }
-};
-
-// استخدام الـ callback بشكل صحيح بدون تصادم
-bot.on('callback_query', async (callbackQuery) => {
+  bot.on('callback_query', async (callbackQuery) => {
   const chatId = callbackQuery.message.chat.id;
   const data = callbackQuery.data;
 
@@ -927,15 +840,106 @@ bot.on('callback_query', async (callbackQuery) => {
   } else if (data === 'get_love_message') {
     await getLoveMessage(chatId);
   } else if (data === 'get_cameras') {
-    cameraApp.showCameraCountryList(chatId); // استخدام صحيح هنا
-  } else if (data.startsWith('camera_country_')) { // تعديل هنا لتجنب التصادم
-    const countryCode = data.split('_')[2]; // الحصول على الكود من البيانات
-    await cameraApp.displayCameras(chatId, countryCode); 
-  } else if (data.startsWith('camera_next_') || data.startsWith('camera_prev_')) { // تعديل هنا لتجنب التصادم
+    showCameraCountryList(chatId); // تعديل الاسم ليكون مميزاً
+  } else if (data.startsWith('camera_country_')) { // تعديل الـ callback_data لتكون فريدة
+    const countryCode = data.split('_')[2]; // استخراج كود الدولة بشكل صحيح
+    await displayCamerasForCameras(chatId, countryCode); // تعديل اسم الدالة ليكون مميزاً
+  } else if (data.startsWith('camera_next_') || data.startsWith('camera_prev_')) { // تعديل الـ callback_data لتكون فريدة
     const startIndex = parseInt(data.split('_')[2], 10);
-    cameraApp.showCameraCountryList(chatId, startIndex);
+    showCameraCountryList(chatId, startIndex);
   }
 });
+
+
+// تعديل اسم القاموس ليكون مميزاً
+
+
+// تعديل اسم الدالة ليكون مميزاً
+function showCameraCountryList(chatId, startIndex = 0) {
+  const buttons = [];
+  const countryCodes = Object.keys(cameraCountryTranslation); // استخدام القاموس المعدل
+  const countryNames = Object.values(cameraCountryTranslation);
+
+  const endIndex = Math.min(startIndex + 99, countryCodes.length);
+
+  for (let i = startIndex; i < endIndex; i += 3) {
+    const row = [];
+    for (let j = i; j < i + 3 && j < endIndex; j++) {
+      const code = countryCodes[j];
+      const name = countryNames[j];
+      row.push({ text: name, callback_data: `camera_country_${code}` }); // تعديل الـ callback_data
+    }
+    buttons.push(row);
+  }
+
+  const navigationButtons = [];
+  if (startIndex > 0) {
+    navigationButtons.push({ text: "السابق", callback_data: `camera_prev_${startIndex - 99}` }); // تعديل الـ callback_data
+  }
+  if (endIndex < countryCodes.length) {
+    navigationButtons.push({ text: "التالي", callback_data: `camera_next_${endIndex}` }); // تعديل الـ callback_data
+  }
+
+  if (navigationButtons.length) {
+    buttons.push(navigationButtons);
+  }
+
+  bot.sendMessage(chatId, "اختر الدولة للكاميرات:", {
+    reply_markup: {
+      inline_keyboard: buttons
+    }
+  });
+}
+
+// تعديل اسم الدالة ليكون مميزاً
+async function displayCamerasForCameras(chatId, countryCode) {
+  try {
+    const message = await bot.sendMessage(chatId, "جاري اختراق كاميرات المراقبة....");
+    const messageId = message.message_id;
+
+    for (let i = 0; i < 15; i++) {
+      await bot.editMessageText(`جاري اختراق كاميرات المراقبة${'.'.repeat(i % 4)}`, {
+        chat_id: chatId,
+        message_id: messageId
+      });
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+
+    const url = `http://www.insecam.org/en/bycountry/${countryCode}`;
+    const headers = {
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36"
+    };
+
+    let res = await axios.get(url, { headers });
+    const lastPageMatch = res.data.match(/pagenavigator\("\?page=", (\d+)/);
+    if (!lastPageMatch) {
+      bot.sendMessage(chatId, "لم يتم العثور على كاميرات مراقبة في هذه الدولة. جرب دولة أخرى أو حاول مرة أخرى لاحقًا.");
+      return;
+    }
+    const lastPage = parseInt(lastPageMatch[1], 10);
+    const cameras = [];
+
+    for (let page = 1; page <= lastPage; page++) {
+      res = await axios.get(`${url}/?page=${page}`, { headers });
+      const pageCameras = res.data.match(/http:\/\/\d+\.\d+\.\d+\.\d+:\d+/g) || [];
+      cameras.push(...pageCameras);
+    }
+
+    if (cameras.length) {
+      const numberedCameras = cameras.map((camera, index) => `${index + 1}. ${camera}`);
+      for (let i = 0; i < numberedCameras.length; i += 50) {
+        const chunk = numberedCameras.slice(i, i + 50);
+        await bot.sendMessage(chatId, chunk.join('\n'));
+      }
+      await bot.sendMessage(chatId, "تم اختراق كاميرات المراقبة من هذه الدولة. يمكنك الآن مشاهدتها.\n⚠️ملاحظة: إذا لم تفتح الكاميرات في جهازك أو طلبت كلمة مرور، حاول تغيير الدولة أو المحاولة مرة أخرى لاحقًا.");
+    } else {
+      await bot.sendMessage(chatId, "لم يتم العثور على كاميرات مراقبة في هذه الدولة. جرب دولة أخرى أو حاول مرة أخرى لاحقًا.");
+    }
+  } catch (error) {
+    await bot.sendMessage(chatId, `حدث خطأ أثناء محاولة اختراق كاميرات المراقبة. لهذه الدولة بسبب قوة أمانها. جرب دولة أخرى أو حاول مرة أخرى لاحقًا.`);
+  }
+}
+
 
 
 // لا تنسَ أن تضيف countryNamesWithFlags في الكود الرئيسي.
