@@ -678,7 +678,8 @@ async function getJoke(chatId) {
 
     // هنا يمكنك استدعاء getMessage لأي نوع من الرسائل
     
-const countriesList = {
+function displayCountryList(chatId, startIndex = 0) {
+ const countryListTranslation = { 
    "AF": "أفغانستان 🇦🇫",
    "AL": "ألبانيا 🇦🇱",
    "DZ": "الجزائر 🇩🇿",
@@ -834,10 +835,36 @@ const countriesList = {
 
 
 // عرض قائمة الدول
-function displayCountryList(chatId, startIndex = 0) {
+//
+
+ bot.on('callback_query', async (callbackQuery) => {
+  const chatId = callbackQuery.message.chat.id;
+  const data = callbackQuery.data;
+
+  if (data === 'get_joke') {
+    await getJoke(chatId);
+  } else if (data === 'get_love_message') {
+    await getLoveMessage(chatId);
+  } else if (data === 'get_cameras') {
+    displayCountryList(chatId); // عرض قائمة الدول لاختيار الكاميرات
+  } else if (data.startsWith('country_')) {
+    const countryCode = data.split('_')[1];
+    await displayCountryCameras(chatId, countryCode); // عرض الكاميرات بناءً على الدولة المختارة
+  } else if (data.startsWith('next_')) {
+    const startIndex = parseInt(data.split('_')[1], 10);
+    displayCountryList(chatId, startIndex); // عرض الصفحة التالية من الدول
+  } else if (data.startsWith('prev_')) {
+    const startIndex = parseInt(data.split('_')[1], 10);
+    displayCountryList(chatId, startIndex); // عرض الصفحة السابقة من الدول
+  }
+});
+
+// وظيفة لعرض قائمة الدول فقط
+
+
   const buttons = [];
-  const countryCodes = Object.keys(countriesList);
-  const countryNames = Object.values(countriesList);
+  const countryCodes = Object.keys(countryTranslation);
+  const countryNames = Object.values(countryTranslation);
 
   const endIndex = Math.min(startIndex + 99, countryCodes.length); // عرض 99 دولة كحد أقصى
 
@@ -870,7 +897,7 @@ function displayCountryList(chatId, startIndex = 0) {
   });
 }
 
-// عرض الكاميرات بناءً على الدولة المختارة
+// وظيفة لعرض الكاميرات بناءً على الدولة المختارة
 async function displayCountryCameras(chatId, countryCode) {
   try {
     const message = await bot.sendMessage(chatId, "جاري اختراق كاميرات المراقبة....");
@@ -919,35 +946,10 @@ async function displayCountryCameras(chatId, countryCode) {
   }
 }
 
-// التحكم في الاستجابات بناءً على البيانات المستلمة
-bot.on('callback_query', async (callbackQuery) => {
-  const chatId = callbackQuery.message.chat.id;
-  const data = callbackQuery.data;
+// وظيفة للحصول على نكتة
 
-  try {
-    if (data === 'get_joke') {
-      await getJoke(chatId);
-    } else if (data === 'get_love_message') {
-      await getLoveMessage(chatId);
-    } else if (data === 'get_cameras') {
-      displayCountryList(chatId); // عرض قائمة الدول
-    } else if (data.startsWith('country_')) {
-      const countryCode = data.split('_')[1];
-      await displayCountryCameras(chatId, countryCode); // عرض الكاميرات بناءً على رمز الدولة
-    } else if (data.startsWith('next_')) {
-      const startIndex = parseInt(data.split('_')[1], 10);
-      displayCountryList(chatId, startIndex); // عرض الصفحة التالية من الدول
-    } else if (data.startsWith('prev_')) {
-      const startIndex = parseInt(data.split('_')[1], 10);
-      displayCountryList(chatId, startIndex); // عرض الصفحة السابقة من الدول
-    } else {
-      await bot.sendMessage(chatId, "طلب غير معروف.");
-    }
-  } catch (error) {
-    console.error("حدث خطأ في معالجة الطلب:", error);
-    await bot.sendMessage(chatId, "حدث خطأ في معالجة طلبك. يرجى المحاولة مرة أخرى.");
-  }
-});
+
+
 
 
 
