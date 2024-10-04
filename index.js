@@ -220,7 +220,7 @@ async function downloadAudio(url, filename) {
 
 
 // استماع للضغط على زر "تحويل النص إلى صوت"
-bot.on('callback_query', async (callbackQuery) => {
+bot.on('callback_query', (callbackQuery) => {
   const chatId = callbackQuery.message.chat.id;
 
   if (callbackQuery.data === 'convert_to_speech') {
