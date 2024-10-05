@@ -678,8 +678,7 @@ async function getJoke(chatId) {
 
     // هنا يمكنك استدعاء getMessage لأي نوع من الرسائل
     
-function displayCountryList(chatId, startIndex = 0) {
- const countryListTranslation = { 
+const cameraCountryTranslation = {
    "AF": "أفغانستان 🇦🇫",
    "AL": "ألبانيا 🇦🇱",
    "DZ": "الجزائر 🇩🇿",
@@ -837,63 +836,73 @@ function displayCountryList(chatId, startIndex = 0) {
 // عرض قائمة الدول
 //
 
- bot.on('callback_query', async (callbackQuery) => {
-  const chatId = callbackQuery.message.chat.id;
-  const data = callbackQuery.data;
+//
 
-  if (data === 'get_joke') {
-    await getJoke(chatId);
-  } else if (data === 'get_love_message') {
-    await getLoveMessage(chatId);
-  } else if (data === 'get_cameras') {
-    displayCountryList(chatId);
-  } else if (data.startsWith('country_')) {
-    const countryCode = data.split('_')[1];
-    await displayCameras(chatId, countryCode);
-  } else if (data.startsWith('next_') || data.startsWith('prev_')) {
-    const startIndex = parseInt(data.split('_')[1], 10);
-    displayCountryList(chatId, startIndex);
-  } else {
+// Handle camera-related callback queries
+bot.on('callback_query', async (callbackQuery) => {
+    const chatId = callbackQuery.message.chat.id;
+    const data = callbackQuery.data;
   
-  }
+    
+     if (data === 'get_cameras') {
+        showCameraCountryList(chatId);
+     } else if (data.startsWith('camera_country_')) {
+        const countryCode = data.split('_')[2];
+        await displayCameras(chatId, countryCode);
+     } else if (data.startsWith('camera_next_') || data.startsWith('camera_prev_')) {
+        const startIndex = parseInt(data.split('_')[2], 10);
+        showCameraCountryList(chatId, startIndex);
+    }
 });
 
+// Display camera country list
+function showCameraCountryList(chatId, startIndex = 0) {
+    const buttons = [];
+    const countryCodes = Object.keys(cameraCountryTranslation);
+    const countryNames = Object.values(cameraCountryTranslation);
 
+    const endIndex = Math.min(startIndex + 99, countryCodes.length);
 
-  const buttons = [];
-  const countryCodes = Object.keys(countryTranslation);
-  const countryNames = Object.values(countryTranslation);
-
-  const endIndex = Math.min(startIndex + 99, countryCodes.length); // عرض 99 دولة كحد أقصى
-
-  for (let i = startIndex; i < endIndex; i += 3) { // عرض 3 دول في كل صف
-    const row = [];
-    for (let j = i; j < i + 3 && j < endIndex; j++) {
-      const code = countryCodes[j];
-      const name = countryNames[j];
-      row.push({ text: name, callback_data: `country_${code}` });
+    for (let i = startIndex; i < endIndex; i += 3) {
+        const row = [];
+        for (let j = i; j < i + 3 && j < endIndex; j++) {
+            const code = countryCodes[j];
+            const name = countryNames[j];
+            // تأكد من إضافة أزرار تحتوي على النص وبيانات الرد المناسبة
+            row.push({ text: name, callback_data: `camera_country_${code}` });
+        }
+        // فقط أضف الصف إذا كان يحتوي على أزرار
+        if (row.length > 0) {
+            buttons.push(row);
+        }
     }
-    buttons.push(row);
-  }
 
-  const navigationButtons = [];
-  if (startIndex > 0) {
-    navigationButtons.push({ text: "السابق", callback_data: `prev_${startIndex - 99}` });
-  }
-  if (endIndex < countryCodes.length) {
-    navigationButtons.push({ text: "التالي", callback_data: `next_${endIndex}` });
-  }
-
-  if (navigationButtons.length) {
-    buttons.push(navigationButtons);
-  }
-
-  bot.sendMessage(chatId, "اختر الدولة:", {
-    reply_markup: {
-      inline_keyboard: buttons
+    const navigationButtons = [];
+    if (startIndex > 0) {
+        navigationButtons.push({ text: "السابق", callback_data: `camera_prev_${startIndex - 99}` });
     }
-  });
+    if (endIndex < countryCodes.length) {
+        navigationButtons.push({ text: "التالي", callback_data: `camera_next_${endIndex}` });
+    }
+
+    // أضف أزرار التنقل إذا كانت موجودة
+    if (navigationButtons.length > 0) {
+        buttons.push(navigationButtons);
+    }
+
+    // تأكد من أن لوحة المفاتيح تحتوي على أزرار قبل إرسالها
+    if (buttons.length > 0) {
+        bot.sendMessage(chatId, "عرض كاميرات المراقبة:", {
+            reply_markup: {
+                inline_keyboard: buttons
+            }
+        });
+    } else {
+        bot.sendMessage(chatId, "لا توجد دول لعرضها.");
+    }
 }
+
+
 
 // وظيفة لعرض الكاميرات بناءً على الدولة المختارة
 async function displayCountryCameras(chatId, countryCode) {
