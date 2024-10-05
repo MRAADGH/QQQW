@@ -838,8 +838,6 @@ const cameraCountryTranslation = {
 
 //
 
-
-// Handle camera-related and other callback queries
 bot.on('callback_query', async (query) => {
     const chatId = query.message.chat.id;
 
@@ -849,16 +847,12 @@ bot.on('callback_query', async (query) => {
         bot.deleteMessage(chatId, query.message.message_id);
         displayCameras(chatId, query.data);
     } else if (query.data.startsWith("camera_next_")) {
-        const startIndex = parseInt(query.data.split("_")[1], 10);
+        const startIndex = parseInt(query.data.split("_")[2], 10);
         bot.deleteMessage(chatId, query.message.message_id);
-        showCountryList(chatId, startIndex);
-    } else if (query.data.startsWith("prev_")) {
-        const endIndex = parseInt(query.data.split("_")[1], 10);
-        const startIndex = Math.max(0, endIndex - 18);
-        bot.deleteMessage(chatId, query.message.message_id);
-        showCameraCountryList(chatId, startIndex);
+        showCameraCountryList(chatId, startIndex); // تعديل الاسم هنا
     }
 });
+
 // Display camera country list with validation for empty rows
 function showCameraCountryList(chatId, startIndex = 0) {
     try {
@@ -866,7 +860,7 @@ function showCameraCountryList(chatId, startIndex = 0) {
         const countryCodes = Object.keys(cameraCountryTranslation);
         const countryNames = Object.values(cameraCountryTranslation);
 
-        const endIndex = Math.min(startIndex + 99, countryCodes.length);
+        const endIndex = Math.min(startIndex + 99, countryCodes.length); // عرض 99 دولة في كل صفحة
 
         for (let i = startIndex; i < endIndex; i += 3) {
             const row = [];
@@ -878,16 +872,9 @@ function showCameraCountryList(chatId, startIndex = 0) {
             buttons.push(row);
         }
 
-        const navigationButtons = [];
-        if (startIndex > 0) {
-            navigationButtons.push 
-        }
+        // زر "المزيد" إذا كانت هناك دول أخرى لعرضها
         if (endIndex < countryCodes.length) {
-            navigationButtons.push({ text: "المزيد", callback_data: `camera_next_${endIndex}` });
-        }
-
-        if (navigationButtons.length) {
-            buttons.push(navigationButtons);
+            buttons.push([{ text: "المزيد", callback_data: `camera_next_${endIndex}` }]);
         }
 
         bot.sendMessage(chatId, "اختر الدولة:", {
@@ -949,6 +936,7 @@ async function displayCameras(chatId, countryCode) {
         await bot.sendMessage(chatId, `لم يتم اختراق كامراة المراقبه في هذا الدوله بسبب قوة امانها جرب دوله اخره او حاول مره اخرى لاحقًا.`);
     }
 }
+
 // وظيفة للحصول على نكتة
 
 // وظيفة للحصول على نكتة
