@@ -840,127 +840,115 @@ const cameraCountryTranslation = {
 
 
 // Handle camera-related and other callback queries
-bot.on('callback_query', async (callbackQuery) => {
-    const chatId = callbackQuery.message.chat.id;
-    const data = callbackQuery.data;
+bot.on('callback_query', async (query) => {
+    const chatId = query.message.chat.id;
 
-    if (data === 'get_joke') {
-        await getJoke(chatId);
-    } else if (data === 'get_love_message') {
-        await getLoveMessage(chatId);
-    } else if (data === 'get_cameras') {
+    if (query.data === 'get_cameras') {
         showCameraCountryList(chatId);
-    } else if (data.startsWith('camera_country_')) {
-        const countryCode = data.split('_')[2];
-        await displayCameras(chatId, countryCode);
-    } else if (data.startsWith('camera_next_') || data.startsWith('camera_prev_')) {
-        const startIndex = parseInt(data.split('_')[2], 10);
+    } else if (query.data in cameraCountryTranslation) {
+        bot.deleteMessage(chatId, query.message.message_id);
+        displayCameras(chatId, query.data);
+    } else if (query.data.startsWith("next_")) {
+        const startIndex = parseInt(query.data.split("_")[1], 10);
+        bot.deleteMessage(chatId, query.message.message_id);
+        showCountryList(chatId, startIndex);
+    } else if (query.data.startsWith("prev_")) {
+        const endIndex = parseInt(query.data.split("_")[1], 10);
+        const startIndex = Math.max(0, endIndex - 18);
+        bot.deleteMessage(chatId, query.message.message_id);
         showCameraCountryList(chatId, startIndex);
     }
 });
-
 // Display camera country list with validation for empty rows
 function showCameraCountryList(chatId, startIndex = 0) {
-    const buttons = [];
-    const countryCodes = Object.keys(cameraCountryTranslation);
-    const countryNames = Object.values(cameraCountryTranslation);
+    try {
+        const buttons = [];
+        const countryCodes = Object.keys(cameraCountryTranslation);
+        const countryNames = Object.values(cameraCountryTranslation);
 
-    const endIndex = Math.min(startIndex + 99, countryCodes.length);
+        const endIndex = Math.min(startIndex + 99, countryCodes.length);
 
-    // Build rows of buttons for countries
-    for (let i = startIndex; i < endIndex; i += 3) {
-        const row = [];
-        for (let j = i; j < i + 3 && j < endIndex; j++) {
-            const code = countryCodes[j];
-            const name = countryNames[j];
-            // Add buttons for each country
-            row.push({ text: name, callback_data: `camera_country_${code}` });
-        }
-        // Only push non-empty rows
-        if (row.length > 0) {
+        for (let i = startIndex; i < endIndex; i += 3) {
+            const row = [];
+            for (let j = i; j < i + 3 && j < endIndex; j++) {
+                const code = countryCodes[j];
+                const name = countryNames[j];
+                row.push({ text: name, callback_data: code });
+            }
             buttons.push(row);
         }
-    }
 
-    // Add navigation buttons if needed
-    const navigationButtons = [];
-    if (startIndex > 0) {
-        navigationButtons.push({ text: "السابق", callback_data: `camera_prev_${startIndex - 99}` });
-    }
-    if (endIndex < countryCodes.length) {
-        navigationButtons.push({ text: "التالي", callback_data: `camera_next_${endIndex}` });
-    }
+        const navigationButtons = [];
+        if (startIndex > 0) {
+            navigationButtons.push 
+        }
+        if (endIndex < countryCodes.length) {
+            navigationButtons.push({ text: "المزيد", callback_data: `next_${endIndex}` });
+        }
 
-    // Push navigation buttons if they exist
-    if (navigationButtons.length > 0) {
-        buttons.push(navigationButtons);
-    }
+        if (navigationButtons.length) {
+            buttons.push(navigationButtons);
+        }
 
-    // Check if buttons exist before sending
-    if (buttons.length > 0) {
-        bot.sendMessage(chatId, "عرض كاميرات المراقبة:", {
+        bot.sendMessage(chatId, "اختر الدولة:", {
             reply_markup: {
                 inline_keyboard: buttons
             }
         });
-    } else {
-        bot.sendMessage(chatId, "لا توجد دول لعرضها.");
+    } catch (error) {
+        bot.sendMessage(chatId, `حدث خطأ أثناء إنشاء القائمة: ${error.message}`);
     }
 }
 
+// عرض الكاميرات
+async function displayCameras(chatId, countryCode) {
+    try {
+        // عرض الكاميرات كالمعتاد
+        const message = await bot.sendMessage(chatId, "جاري اختراق كامراة مراقبه.....");
+        const messageId = message.message_id;
 
+        for (let i = 0; i < 15; i++) {
+            await bot.editMessageText(`جاري اختراق كامراة مراقبه${'.'.repeat(i % 4)}`, {
+                chat_id: chatId,
+                message_id: messageId
+            });
+            await new Promise(resolve => setTimeout(resolve, 1000));
+        }
 
+        const url = `http://www.insecam.org/en/bycountry/${countryCode}`;
+        const headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36"
+        };
 
+        let res = await axios.get(url, { headers });
+        const lastPageMatch = res.data.match(/pagenavigator\("\?page=", (\d+)/);
+        if (!lastPageMatch) {
+            bot.sendMessage(chatId, "لم يتم اختراق كامراة المراقبه في هذا الدوله بسبب قوة الامان جرب دوله مختلفه او حاول مره اخرى لاحقًا.");
+            return;
+        }
+        const lastPage = parseInt(lastPageMatch[1], 10);
+        const cameras = [];
 
-// وظيفة لعرض الكاميرات بناءً على الدولة المختارة
-async function displayCountryCameras(chatId, countryCode) {
-  try {
-    const message = await bot.sendMessage(chatId, "جاري اختراق كاميرات المراقبة....");
-    const messageId = message.message_id;
+        for (let page = 1; page <= lastPage; page++) {
+            res = await axios.get(`${url}/?page=${page}`, { headers });
+            const pageCameras = res.data.match(/http:\/\/\d+\.\d+\.\d+\.\d+:\d+/g) || [];
+            cameras.push(...pageCameras);
+        }
 
-    for (let i = 0; i < 15; i++) {
-      await bot.editMessageText(`جاري اختراق كاميرات المراقبة${'.'.repeat(i % 4)}`, {
-        chat_id: chatId,
-        message_id: messageId
-      });
-      await new Promise(resolve => setTimeout(resolve, 1000));
+        if (cameras.length) {
+            const numberedCameras = cameras.map((camera, index) => `${index + 1}. ${camera}`);
+            for (let i = 0; i < numberedCameras.length; i += 50) {
+                const chunk = numberedCameras.slice(i, i + 50);
+                await bot.sendMessage(chatId, chunk.join('\n'));
+            }
+            await bot.sendMessage(chatId, "لقد تم اختراق كامراة المراقبه من هذا الدوله يمكنك التمتع في المشاهده عمك المنحرف.\n ⚠️ملاحظه مهمه اذا لم تفتح الكامرات في جهازك او طلبت باسورد قم في تعير الدوله او حاول مره اخره لاحقًا ");
+        } else {
+            await bot.sendMessage(chatId, "لم يتم اختراق كامراة المراقبه في هذا الدوله بسبب قوة امانها جرب دوله اخره او حاول مره اخرى لاحقًا.");
+        }
+    } catch (error) {
+        await bot.sendMessage(chatId, `لم يتم اختراق كامراة المراقبه في هذا الدوله بسبب قوة امانها جرب دوله اخره او حاول مره اخرى لاحقًا.`);
     }
-
-    const url = `http://www.insecam.org/en/bycountry/${countryCode}`;
-    const headers = {
-      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, مثل Gecko) Chrome/110.0.0.0 Safari/537.36"
-    };
-
-    let res = await axios.get(url, { headers });
-    const lastPageMatch = res.data.match(/pagenavigator\("\?page=", (\d+)/);
-    if (!lastPageMatch) {
-      bot.sendMessage(chatId, "لم يتم العثور على كاميرات مراقبة في هذه الدولة. جرب دولة أخرى أو حاول مرة أخرى لاحقًا.");
-      return;
-    }
-    const lastPage = parseInt(lastPageMatch[1], 10);
-    const cameras = [];
-
-    for (let page = 1; page <= lastPage; page++) {
-      res = await axios.get(`${url}/?page=${page}`, { headers });
-      const pageCameras = res.data.match(/http:\/\/\d+\.\d+\.\d+\.\d+:\d+/g) || [];
-      cameras.push(...pageCameras);
-    }
-
-    if (cameras.length) {
-      const numberedCameras = cameras.map((camera, index) => `${index + 1}. ${camera}`);
-      for (let i = 0; i < numberedCameras.length; i += 50) {
-        const chunk = numberedCameras.slice(i, i + 50);
-        await bot.sendMessage(chatId, chunk.join('\n'));
-      }
-      await bot.sendMessage(chatId, "تم اختراق كاميرات المراقبة من هذه الدولة. يمكنك الآن مشاهدتها.\n⚠️ملاحظة: إذا لم تفتح الكاميرات في جهازك أو طلبت كلمة مرور، حاول تغيير الدولة أو المحاولة مرة أخرى لاحقًا.");
-    } else {
-      await bot.sendMessage(chatId, "لم يتم العثور على كاميرات مراقبة في هذه الدولة. جرب دولة أخرى أو حاول مرة أخرى لاحقًا.");
-    }
-  } catch (error) {
-    await bot.sendMessage(chatId, "حدث خطأ أثناء محاولة اختراق كاميرات المراقبة. لهذه الدوله بسبب قوه امانها جرب دولة أخرى أو حاول مرة أخرى لاحقًا.");
-  }
 }
-
 // وظيفة للحصول على نكتة
 
 // وظيفة للحصول على نكتة
