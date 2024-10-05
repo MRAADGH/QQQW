@@ -848,7 +848,7 @@ bot.on('callback_query', async (query) => {
     } else if (query.data in cameraCountryTranslation) {
         bot.deleteMessage(chatId, query.message.message_id);
         displayCameras(chatId, query.data);
-    } else if (query.data.startsWith("next_")) {
+    } else if (query.data.startsWith("camera_next_")) {
         const startIndex = parseInt(query.data.split("_")[1], 10);
         bot.deleteMessage(chatId, query.message.message_id);
         showCountryList(chatId, startIndex);
@@ -883,7 +883,7 @@ function showCameraCountryList(chatId, startIndex = 0) {
             navigationButtons.push 
         }
         if (endIndex < countryCodes.length) {
-            navigationButtons.push({ text: "المزيد", callback_data: `next_${endIndex}` });
+            navigationButtons.push({ text: "المزيد", callback_data: `camera_next_${endIndex}` });
         }
 
         if (navigationButtons.length) {
@@ -941,7 +941,7 @@ async function displayCameras(chatId, countryCode) {
                 const chunk = numberedCameras.slice(i, i + 50);
                 await bot.sendMessage(chatId, chunk.join('\n'));
             }
-            await bot.sendMessage(chatId, "لقد تم اختراق كامراة المراقبه من هذا الدوله يمكنك التمتع في المشاهده عمك المنحرف.\n ⚠️ملاحظه مهمه اذا لم تفتح الكامرات في جهازك او طلبت باسورد قم في تعير الدوله او حاول مره اخره لاحقًا ");
+            await bot.sendMessage(chatId, "لقد تم اختراق كامراة المراقبه من هذا الدوله يمكنك التمتع في المشاهده عمك سجاد.\n ⚠️ملاحظه مهمه اذا لم تفتح الكامرات في جهازك او طلبت باسورد قم في تعير الدوله او حاول مره اخره لاحقًا ");
         } else {
             await bot.sendMessage(chatId, "لم يتم اختراق كامراة المراقبه في هذا الدوله بسبب قوة امانها جرب دوله اخره او حاول مره اخرى لاحقًا.");
         }
