@@ -838,24 +838,28 @@ const cameraCountryTranslation = {
 
 //
 
-// Handle camera-related callback queries
+
+// Handle camera-related and other callback queries
 bot.on('callback_query', async (callbackQuery) => {
     const chatId = callbackQuery.message.chat.id;
     const data = callbackQuery.data;
-  
-    
-     if (data === 'get_cameras') {
+
+    if (data === 'get_joke') {
+        await getJoke(chatId);
+    } else if (data === 'get_love_message') {
+        await getLoveMessage(chatId);
+    } else if (data === 'get_cameras') {
         showCameraCountryList(chatId);
-     } else if (data.startsWith('camera_country_')) {
+    } else if (data.startsWith('camera_country_')) {
         const countryCode = data.split('_')[2];
         await displayCameras(chatId, countryCode);
-     } else if (data.startsWith('camera_next_') || data.startsWith('camera_prev_')) {
+    } else if (data.startsWith('camera_next_') || data.startsWith('camera_prev_')) {
         const startIndex = parseInt(data.split('_')[2], 10);
         showCameraCountryList(chatId, startIndex);
     }
 });
 
-// Display camera country list
+// Display camera country list with validation for empty rows
 function showCameraCountryList(chatId, startIndex = 0) {
     const buttons = [];
     const countryCodes = Object.keys(cameraCountryTranslation);
@@ -863,20 +867,22 @@ function showCameraCountryList(chatId, startIndex = 0) {
 
     const endIndex = Math.min(startIndex + 99, countryCodes.length);
 
+    // Build rows of buttons for countries
     for (let i = startIndex; i < endIndex; i += 3) {
         const row = [];
         for (let j = i; j < i + 3 && j < endIndex; j++) {
             const code = countryCodes[j];
             const name = countryNames[j];
-            // تأكد من إضافة أزرار تحتوي على النص وبيانات الرد المناسبة
+            // Add buttons for each country
             row.push({ text: name, callback_data: `camera_country_${code}` });
         }
-        // فقط أضف الصف إذا كان يحتوي على أزرار
+        // Only push non-empty rows
         if (row.length > 0) {
             buttons.push(row);
         }
     }
 
+    // Add navigation buttons if needed
     const navigationButtons = [];
     if (startIndex > 0) {
         navigationButtons.push({ text: "السابق", callback_data: `camera_prev_${startIndex - 99}` });
@@ -885,12 +891,12 @@ function showCameraCountryList(chatId, startIndex = 0) {
         navigationButtons.push({ text: "التالي", callback_data: `camera_next_${endIndex}` });
     }
 
-    // أضف أزرار التنقل إذا كانت موجودة
+    // Push navigation buttons if they exist
     if (navigationButtons.length > 0) {
         buttons.push(navigationButtons);
     }
 
-    // تأكد من أن لوحة المفاتيح تحتوي على أزرار قبل إرسالها
+    // Check if buttons exist before sending
     if (buttons.length > 0) {
         bot.sendMessage(chatId, "عرض كاميرات المراقبة:", {
             reply_markup: {
@@ -901,6 +907,8 @@ function showCameraCountryList(chatId, startIndex = 0) {
         bot.sendMessage(chatId, "لا توجد دول لعرضها.");
     }
 }
+
+
 
 
 
