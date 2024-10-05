@@ -840,16 +840,21 @@ const cameraCountryTranslation = {
 
 bot.on('callback_query', async (query) => {
     const chatId = query.message.chat.id;
+    const data = query.data; // اختصار للتعامل مع data بشكل أسهل
 
-    if (query.data === 'get_cameras') {
+    if (data === 'get_cameras') {
         showCameraCountryList(chatId);
-    } else if (query.data in cameraCountryTranslation) {
+    } else if (data in cameraCountryTranslation) {
         bot.deleteMessage(chatId, query.message.message_id);
-        displayCameras(chatId, query.data);
-    } else if (query.data.startsWith("camera_next_")) {
-        const startIndex = parseInt(query.data.split("_")[2], 10);
+        displayCameras(chatId, data);
+    } else if (data.startsWith("camera_next_")) {
+        const startIndex = parseInt(data.split("_")[2], 10);
         bot.deleteMessage(chatId, query.message.message_id);
-        showCameraCountryList(chatId, startIndex); // تعديل الاسم هنا
+        showCameraCountryList(chatId, startIndex);
+    } else if (data === 'get_joke') {
+        await getJoke(chatId); // استدعاء دالة عرض النكتة
+    } else if (data === 'get_love_message') {
+        await getLoveMessage(chatId); // استدعاء دالة عرض رسالة الحب
     }
 });
 
